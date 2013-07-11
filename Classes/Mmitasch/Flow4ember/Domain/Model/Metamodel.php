@@ -48,7 +48,7 @@ class Metamodel {
 	 * meta model name; derived from $flowmodelname
 	 * @var string
 	 */
-	protected $modelName;
+	public $modelName;
 
 	/**
 	 * meta resource name
