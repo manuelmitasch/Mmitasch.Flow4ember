@@ -1,0 +1,14 @@
+{
+    "name": "mmitasch\/flow4ember",
+    "type": "typo3-flow-package",
+    "description": "TYPO3 Flow meets Ember through conventions",
+    "version": "0.0.1",
+    "require": {
+        "typo3\/flow":"*"
+    },
+    "autoload":{
+        "psr-0":{
+            "Mmitasch\\Flow4ember":"Classes"
+         }
+    }
+}

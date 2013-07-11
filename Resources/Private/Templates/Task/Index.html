@@ -1,0 +1,25 @@
+<f:layout name="Default" />
+
+<f:section name="Title">A list of tasks</f:section>
+
+<f:section name="Content">
+	<f:if condition="{tasks}">
+		<f:then>
+			<ul>
+				<f:for each="{tasks}" as="task">
+					<li>
+						<f:link.action action="show" arguments="{task: task}">{task.name}</f:link.action>
+						<f:link.action action="edit" arguments="{task: task}">Edit</f:link.action>
+						<f:form action="delete" arguments="{task: task}">
+							<f:form.submit value="Delete" />
+						</f:form>
+					</li>
+				</f:for>
+			</ul>
+		</f:then>
+		<f:else>
+			<p>No tasks created yet.</p>
+		</f:else>
+	</f:if>
+	<p><f:link.action action="new">Create a new task</f:link.action></p>
+</f:section>

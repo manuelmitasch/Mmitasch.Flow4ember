@@ -1,0 +1,20 @@
+<f:layout name="Default" />
+
+<f:section name="Title">New task</f:section>
+
+<f:section name="Content">
+	<p>Just fill out the following form to create a new task:</p>
+
+	<f:form action="create" objectName="newTask">
+		<ol>
+			<li>
+				<label for="name">Task</label>
+				<f:form.textfield property="name" id="name" />
+			</li>
+		
+			<li>
+				<f:form.submit value="Create" />
+			</li>
+		</ol>
+	</f:form>
+</f:section>
