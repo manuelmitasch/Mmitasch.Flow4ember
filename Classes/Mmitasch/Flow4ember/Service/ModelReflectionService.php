@@ -44,10 +44,11 @@ class ModelReflectionService {
 		$models = $this->reflectionService->getClassNamesByAnnotation('\Mmitasch\Flow4ember\Annotations\Resource');
 		
 		foreach ($models as $modelname) {
-			$this->metaModels[] = new \Mmitasch\Flow4ember\Domain\Model\Metamodel($modelname);	
+			$metamodel = new \Mmitasch\Flow4ember\Domain\Model\Metamodel($modelname);	
+			$this->metaModels[] = $metamodel;
+			var_dump($metamodel.getRepository()); // todo remove
 		}
 		
-		var_dump($this->metaModels); // todo remove
 	}
 	
 	

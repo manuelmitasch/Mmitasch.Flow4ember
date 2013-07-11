@@ -16,17 +16,26 @@ use TYPO3\Flow\Annotations as Flow,
 class Metamodel {
 
 	/**
-	 * @param type $flowmodelName
+	 * 
+	 * @param string $flowmodelName
 	 * @param \TYPO3\Flow\Reflection\ReflectionService $reflectionService
+	 * @param \TYPO3\Flow\Object\ObjectManagerInterface $objectManager
 	 */
-	public function __construct($flowmodelName, \TYPO3\Flow\Reflection\ReflectionService $reflectionService) {
+	public function __construct($flowmodelName, \TYPO3\Flow\Reflection\ReflectionService $reflectionService, \TYPO3\Flow\Object\ObjectManagerInterface $objectManager) {
 		$this->flowmodelName = $flowmodelName;
 		$this->modelName = NamingUtility::extractMetamodelname($flowmodelName);
 
+		// set resource name
 		// TODO check Ember.yaml for custom resource name
 		$resourceAnnotation = $reflectionService->getClassAnnotation($flowmodelName, '\Mmitasch\Flow4ember\Annotations\Resource');
 		$this->resourceName = $resourceAnnotation->getName();
 		$this->resourceName = ($this->resourceName === NULL) ? strtolower($this->modelName) . "s" : $this->resourceName;
+		
+		// set repository if exists
+		$repositoryName = str_replace(array('\\Model\\'), array('\\Repository\\'), $this->flowmodelName) . 'Repository';
+		if ($objectManager->isRegistered($repositoryName)) {
+			$this->repository = $objectManager->get($repositoryName);
+		}
 	}
 
 	/**
@@ -47,7 +56,11 @@ class Metamodel {
 	 */
 	protected $resourceName;
 
-	
+	/**
+	 * repository 
+	 * @var TYPO3\Flow\Persistence\Repository
+	 */
+	protected $repository;
 	
 	/**
 	 * @return string
@@ -77,6 +90,14 @@ class Metamodel {
 	public function setResourceName($resourceName) {
 		$this->resourceName = $resourceName;
 	}
+	
+	/**
+	 * @return TYPO3\Flow\Persistence\Repository
+	 */
+	public function getRepository() {
+		return $this->repository;
+	}
+
 
 }
 
