@@ -11,7 +11,6 @@ use TYPO3\Flow\Annotations as Flow;
 class Property {
 
 	/**
-	 * 
 	 * @param string $name
 	 * @param Mmitasch\Flow4ember\Domain\Model\TypeConverter $converter
 	 */

@@ -1,0 +1,34 @@
+-
+  name: 'REST API Resources'
+  uriPattern: 'rest/{resourceName}'
+  defaults:
+    '@package': 'Mmitasch.Flow4ember'
+    '@controller': 'EmberRest'
+    '@format': 'json'
+  routeParts:
+    'resourceName':
+      handler: 'Mmitasch\Flow4ember\Routing\ResourceNameRoutePart'
+
+-
+  name: 'REST API Resource'
+  uriPattern: 'rest/{resourceName}/{resourceId}'
+  defaults:
+    '@package': 'Mmitasch.Flow4ember'
+    '@controller': 'EmberRest'
+    '@format': 'json'
+  routeParts:
+    'resourceName':
+      handler: 'Mmitasch\Flow4ember\Routing\ResourceNameRoutePart'
+
+
+-
+  name: 'REST API Resources by filter'
+  uriPattern: 'rest/{resourceName}(/{filter})'
+  defaults:
+    '@package': 'Mmitasch.Flow4ember'
+    '@controller': 'EmberRest'
+    '@format': 'json'
+    'filter': ''
+  routeParts:
+    'resourceName':
+      handler: 'Mmitasch\Flow4ember\Routing\ResourceNameRoutePart'

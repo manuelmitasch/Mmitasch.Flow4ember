@@ -7,7 +7,8 @@ namespace Mmitasch\Flow4ember\Service;
  *                                                                        *
  *                                                                        */
 
-use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Annotations as Flow,
+	Mmitasch\Flow4ember\Domain\Model\TypeConverter as TypeConverter;
 
 
 /**
@@ -40,9 +41,9 @@ class ConverterService {
 		// datetime => date
 		// boolean => boolean
 		
-		$standardConverters['string'] = new TypeConverter('string', 'string', function ($value) { return value; }, function($value) { return value(); });
-		$standardConverters['boolean'] = new TypeConverter('boolean', 'boolean', function ($value) { return ($value) ? "true" : "false"; }, function($value) { return new Boolean($value); });
-		$standardConverters['date'] = new TypeConverter('\Datetime', 'date', function ($value) { return $value->format(\DateTime::ISO8601); }, function($value) { return new DateTime($value); });
+		$this->standardConverters['string'] = new TypeConverter('string', 'string', function ($value) { return value; }, function($value) { return value(); });
+		$this->standardConverters['boolean'] = new TypeConverter('boolean', 'boolean', function ($value) { return ($value) ? "true" : "false"; }, function($value) { return new Boolean($value); });
+		$this->standardConverters['date'] = new TypeConverter('\Datetime', 'date', function ($value) { return $value->format(\DateTime::ISO8601); }, function($value) { return new DateTime($value); });
 	}
 	
 	/**
@@ -55,11 +56,12 @@ class ConverterService {
 	 * @throws \RuntimeException
 	 */
 	public function getTypeConverter($flowType, $emberType) {
-		foreach ($this->converters as $key => $converter) {
+		
+		foreach ((array)$this->converters as $key => $converter) {
 			if ($converter->getFlowType() === $flowType && $converter->getEmberType() === $emberType) return $converter;
 		}
 		
-		foreach ($this->standardConverters as $key => $converter) {
+		foreach ((array)$this->standardConverters as $key => $converter) {
 			if ($converter->getFlowType() === $flowType) return $converter;
 		}
 

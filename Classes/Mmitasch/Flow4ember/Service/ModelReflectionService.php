@@ -7,8 +7,8 @@ namespace Mmitasch\Flow4ember\Service;
  *                                                                        *
  *                                                                        */
 
-use TYPO3\Flow\Annotations as Flow;
-
+use TYPO3\Flow\Annotations as Flow,
+		\Mmitasch\Flow4ember\Domain\Model\Metamodel;
 
 /**
  * 
@@ -44,8 +44,10 @@ class ModelReflectionService {
 		$models = $this->reflectionService->getClassNamesByAnnotation('\Mmitasch\Flow4ember\Annotations\Resource');
 		
 		foreach ($models as $modelname) {
-			$this->metaModels[$modelname] = new \Mmitasch\Flow4ember\Domain\Model\Metamodel($modelname);	
+			$this->metaModels[$modelname] = new Metamodel($modelname);	
 		}
+		
+//		$this->dumpModels(); // TODO: remove
 	}
 	
 	
@@ -78,6 +80,16 @@ class ModelReflectionService {
 			if ($metaModel->getResourceName() === $resourceName) return $metaModel;
 		}
 		return NULL;
+	}
+	
+	/**
+	 * Is the resource with given name registered?
+	 * 
+	 * @param string $resourceName
+	 * @return boolean
+	 */
+	public function hasResourceName($resourceName) {
+		return ($this->findByResourceName($resourceName) !== NULL);
 	}
 	
 	

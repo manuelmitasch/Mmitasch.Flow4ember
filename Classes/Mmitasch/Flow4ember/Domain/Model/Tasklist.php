@@ -6,29 +6,29 @@ namespace Mmitasch\Flow4ember\Domain\Model;
  *                                                                        *
  *                                                                        */
 
-use TYPO3\Flow\Annotations as Flow,
-	Doctrine\ORM\Mapping as ORM,
+use TYPO3\Flow\Annotations as Flow;
+use Doctrine\ORM\Mapping as ORM,
 	Mmitasch\Flow4ember\Annotations as Ember;
 
 /**
  * Exists for testing purposes only.
- * 
  * @Flow\Entity
- * @Ember\Resource
+ * @Ember\Resource(name="list")
  */
-class Task {
+class Tasklist {
 
 	/**
 	 * @var string
 	 */
 	protected $name;
-	
+
 	/**
-	 * @var \Mmitasch\Flow4ember\Domain\Model\Tasklist
-	 * @ORM\ManyToOne(inversedBy="tasks")
+	 * @var \Doctrine\Common\Collections\Collection<\Mmitasch\Flow4ember\Domain\Model\Task>
+	 * @ORM\OneToMany(mappedBy="list")
 	 */
-	protected $list;
-	
+	protected $tasks;
+
+
 	/**
 	 * @return string
 	 */
@@ -43,24 +43,21 @@ class Task {
 	public function setName($name) {
 		$this->name = $name;
 	}
-	
+
 	/**
-	 * @var \Mmitasch\Flow4ember\Domain\Model\Tasklist
-	 * @return type
+	 * @return \Doctrine\Common\Collections\Collection<\Mmitasch\Flow4ember\Domain\Model\Task>
 	 */
-	public function getList() {
-		return $this->list;
+	public function getTasks() {
+		return $this->tasks;
 	}
 
 	/**
-	 * @param \Mmitasch\Flow4ember\Domain\Model\Tasklist $list
+	 * @param \Mmitasch\Flow4ember\Domain\Model\Task $task
 	 * @return void
 	 */
-	public function setList(\Mmitasch\Flow4ember\Domain\Model\Tasklist $list) {
-		$this->list = $list;
+	public function addTask($task) {
+		$this->tasks->add($task);
 	}
 
-
-	
 }
 ?>
