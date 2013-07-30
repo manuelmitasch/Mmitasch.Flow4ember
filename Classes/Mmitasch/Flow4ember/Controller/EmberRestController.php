@@ -52,7 +52,6 @@ class EmberRestController extends \TYPO3\Flow\Mvc\Controller\ActionController {
 		
 			// get corresponding metamodel
 		$arguments = $this->request->getArguments();
-//		\TYPO3\Flow\var_dump($this->request);
 		$this->metaModel = $this->modelReflectionService->findByResourceName($arguments['resourceName']);
 		
 		if ($this->metaModel->getRepository() === NULL) {

@@ -66,7 +66,11 @@ class ModelReflectionService {
 	 * @return \Mmitasch\Flow4ember\Domain\Model\Metamodel
 	 */
 	public function findByFlowModelName($flowModelName) {
-		return $this->metaModels[$flowModelName];
+		if (array_key_exists($flowModelName, $this->metaModels)) {
+			return $this->metaModels[$flowModelName];
+		} else {
+			throw new \RuntimeException('Could not find Metamodel for class: ' . $flowModelName . '.', 1361478318); 
+		}
 	}
 	
 	/**
@@ -79,7 +83,8 @@ class ModelReflectionService {
 		foreach ($this->metaModels as $flowName => $metaModel) {
 			if ($metaModel->getResourceName() === $resourceName) return $metaModel;
 		}
-		return NULL;
+		
+		throw new \RuntimeException('Could not find Metamodel for resourceName: ' . $resourceName . '.', 1361478317); 
 	}
 	
 	/**

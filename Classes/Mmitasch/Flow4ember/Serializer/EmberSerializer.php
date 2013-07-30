@@ -1,17 +1,19 @@
 <?php
 namespace Mmitasch\Flow4ember\Serializer;
 
+/**
+ * This script belongs to the TYPO3 Flow package "Mmitasch.Flow4ember".   *
+ *                                                                        *
+ *                                                                        */
+
 use TYPO3\Flow\Annotations as Flow,
-	Radmiraal\Emberjs\Utility\EmberDataUtility,
-	TYPO3\Flow\Reflection\ObjectAccess,
-	TYPO3\Flow\Reflection\ReflectionService,
-	TYPO3\Flow\Utility\Arrays,
-	TYPO3\Flow\Utility\TypeHandling,
-	TYPO3\Flow\Object\Configuration\Configuration,
 	Mmitasch\Flow4ember\Domain\Model\Metamodel,
 	Mmitasch\Flow4ember\Domain\Model\Association,
 	Mmitasch\Flow4ember\Utility\NamingUtility;
 
+/**
+ * Serializer that conforms to Ember Data RESTAdapter conventions
+ */
 class EmberSerializer implements SerializerInterface {
 
 	/**
@@ -35,12 +37,13 @@ class EmberSerializer implements SerializerInterface {
 	 * Used for serializing inputted objects
 	 * 
 	 * @param array $objects
-	 * @param Mmitasch\Flow4ember\Domain\Model\Metamodel $metaModel
 	 * @param boolean $isCollection
 	 * @return type
 	 */
-	public function serialize (array $objects, \Mmitasch\Flow4ember\Domain\Model\Metamodel $metaModel, $isCollection) {
+	public function serialize (array $objects, $isCollection) {
 		$result = array();
+		$flowModelName = get_class($objects[0]);
+		$metaModel = $this->modelReflectionService->findByFlowModelName($flowModelName);
 		
 		if ($isCollection) {
 			$resourceName = $metaModel->getResourceName();
@@ -68,6 +71,13 @@ class EmberSerializer implements SerializerInterface {
 	}
 	
 	
+	/**
+	 * Used to serialize a collection of models
+	 * 
+	 * @param array $objects
+	 * @param \Mmitasch\Flow4ember\Domain\Model\Metamodel $metaModel
+	 * @return type
+	 */
 	protected function serializeCollection(array $objects, Metamodel $metaModel) {
 		$result = array();
 		
@@ -78,6 +88,13 @@ class EmberSerializer implements SerializerInterface {
 		return $result;
 	}
 	
+	/**
+	 * Used to serialize a single model with it's properties and associations.
+	 * 
+	 * @param type $object
+	 * @param \Mmitasch\Flow4ember\Domain\Model\Metamodel $metaModel
+	 * @return type
+	 */
 	protected function serializeObject($object, Metamodel $metaModel) {
 		$result = array();
 		
@@ -104,13 +121,14 @@ class EmberSerializer implements SerializerInterface {
 			
 				// only include in result if contains an object
 			if (isset($associatedObjects) && !empty($associatedObjects)) {
+					// define name of association property
 				if ($association->getIsCollection()) {
-					if ($association->getSideload()) {
+					if ($association->getEmbedded() === "always" || $association->getEmbedded() === "load") {
+						$name = NamingUtility::decamelize($association->getEmberName()); // case: hasMany + embed association
+					} elseif ($association->getSideload()) {
 						$modelName = $this->modelReflectionService->findByFlowModelName($association->getFlowModelName())->getModelName();
 						$name = NamingUtility::decamelize($modelName) . '_ids'; // case: hasMany + sideload association
 						// TODO: check why ember uses this crazy naming convention, seems wrong (how to properly get from eg. tasks to task_ids)
-					} elseif ($association->getEmbedded() === "always" || $association->getEmbedded() === "load") {
-						$name = NamingUtility::decamelize($association->getEmberName()); // case: hasMany + embed association
 					} else {
 						$modelName = $this->modelReflectionService->findByFlowModelName($association->getFlowModelName())->getModelName();
 						$name = NamingUtility::decamelize($modelName) . '_ids'; // case: hasMany (array of ids)
@@ -127,24 +145,30 @@ class EmberSerializer implements SerializerInterface {
 		return $result;
 	}
 	
-	
+	/**
+	 * Used to serialize an association.
+	 * 
+	 * @param type $objects
+	 * @param \Mmitasch\Flow4ember\Domain\Model\Association $association
+	 * @return type
+	 */
 	protected function serializeAssociation($objects, Association $association) {
 		$result = array();
 		$associationFlowModelName = $association->getFlowModelName();
 		$associationMetaModel = $this->modelReflectionService->findByFlowModelName($associationFlowModelName);
 		
 		if ($association->getIsCollection()) {
-			if ($association->getSideload()) {
+			 if ($association->getEmbedded() === "always" || $association->getEmbedded() === "load") {
+				// case: hasMany + embed association
+				foreach ($objects as $object) {
+					$result[] = $this->serializeObject($object, $associationMetaModel);
+				}
+			} elseif ($association->getSideload()) {
 				// case: hasMany + sideload association
 				foreach ($objects as $object) {
 					$id = $this->persistenceManager->getIdentifierByObject($object);
 					$this->sideloadObjects[$associationFlowModelName][$id] = $object;
 					$result[] = $this->persistenceManager->getIdentifierByObject($object);
-				}
-			} elseif ($association->getEmbedded() === "always" || $association->getEmbedded() === "load") {
-				// case: hasMany + embed association
-				foreach ($objects as $object) {
-					$result[] = $this->serializeObject($object, $associationMetaModel);
 				}
 			} else {
 				// case: hasMany (array of ids)

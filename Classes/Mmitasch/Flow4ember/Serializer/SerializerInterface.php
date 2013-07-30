@@ -15,11 +15,10 @@ interface SerializerInterface {
 	 * Used for serializing inputted objects
 	 * 
 	 * @param array $objects
-	 * @param Mmitasch\Flow4ember\Domain\Model\Metamodel $metaModel
 	 * @param boolean $isCollection
 	 * @return type
 	 */
-	public function serialize (array $objects, \Mmitasch\Flow4ember\Domain\Model\Metamodel $metaModel, $isCollection);
+	public function serialize (array $objects, $isCollection);
 
 }
 

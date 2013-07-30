@@ -30,12 +30,12 @@ class EmberView extends \TYPO3\Flow\Mvc\View\AbstractView {
 	 * @return string The JSON encoded variables
 	 */
 	public function render() {
-//		$this->controllerContext->getResponse()->setHeader('Content-Type', 'application/json');
+//		$this->controllerContext->getResponse()->setHeader('Content-Type', 'application/json'); // TODO: uncomment
 
 		$isCollection = (array_key_exists('isCollection', $this->variables) && $this->variables['isCollection'] == TRUE);
 		$content = $this->variables['content'];
 
-		return $this->serializer->serialize($content, $this->variables['metaModel'], $isCollection);
+		return $this->serializer->serialize($content, $isCollection);
 	}
 
 }
