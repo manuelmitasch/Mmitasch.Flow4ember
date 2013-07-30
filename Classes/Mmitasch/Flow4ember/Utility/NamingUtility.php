@@ -29,7 +29,7 @@ class NamingUtility {
 	 * @return string
 	 * @see http://emberjs.com/guides/models/the-rest-adapter/#toc_underscored-attribute-names
 	 */
-	static public function uncamelize($string) {
+	static public function decamelize($string) {
 		return strtolower(preg_replace('/(.)([A-Z])/', '$1_$2', $string));
 	}
 

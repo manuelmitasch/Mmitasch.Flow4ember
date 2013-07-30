@@ -26,6 +26,7 @@ class Task {
 	/**
 	 * @var \Mmitasch\Flow4ember\Domain\Model\Tasklist
 	 * @ORM\ManyToOne(inversedBy="tasks")
+	 * @Ember\Sideload
 	 */
 	protected $list;
 	

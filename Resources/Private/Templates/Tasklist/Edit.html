@@ -1,0 +1,23 @@
+<f:layout name="Default" />
+
+<f:section name="Title">Edit tasklist "{tasklist.name}"</f:section>
+
+<f:section name="Content">
+	<f:form action="update" object="{tasklist}" objectName="tasklist">
+		<ol>
+			<li>
+				<label for="name">Name</label>
+				<f:form.textfield property="name" id="name" />
+			</li>
+		
+			<li>
+				<label for="tasks">Tasks</label>
+				<f:form.select name="tasks" options="{tasks}" property=""/>
+			</li>
+		
+			<li>
+				<f:form.submit value="Update" />
+			</li>
+		</ol>
+	</f:form>
+</f:section>

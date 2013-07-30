@@ -8,9 +8,11 @@ use TYPO3\Flow\Annotations as Flow,
 	TYPO3\Flow\Utility\Arrays,
 	TYPO3\Flow\Utility\TypeHandling,
 	TYPO3\Flow\Object\Configuration\Configuration,
-	Mmitasch\Flow4ember\Domain\Model\Metamodel;
+	Mmitasch\Flow4ember\Domain\Model\Metamodel,
+	Mmitasch\Flow4ember\Domain\Model\Association,
+	Mmitasch\Flow4ember\Utility\NamingUtility;
 
-class EmberSerializer {
+class EmberSerializer implements SerializerInterface {
 
 	/**
 	 * @Flow\Inject
@@ -29,14 +31,16 @@ class EmberSerializer {
 	 */
 	protected $sideloadObjects;
 	
-	
-	public function serialize(array $objects, Metamodel $metaModel, $isCollection) {
+	/**
+	 * Used for serializing inputted objects
+	 * 
+	 * @param array $objects
+	 * @param Mmitasch\Flow4ember\Domain\Model\Metamodel $metaModel
+	 * @param boolean $isCollection
+	 * @return type
+	 */
+	public function serialize (array $objects, \Mmitasch\Flow4ember\Domain\Model\Metamodel $metaModel, $isCollection) {
 		$result = array();
-		
-//		$task = $objects[0];
-//		$getter = 'getName';
-//		\TYPO3\Flow\var_dump($task->$getter());
-//		die();
 		
 		if ($isCollection) {
 			$resourceName = $metaModel->getResourceName();
@@ -44,6 +48,20 @@ class EmberSerializer {
 		} else {
 			$resourceNameSingular = $metaModel->getResourceNameSingular();
 			$result[$resourceNameSingular] = $this->serializeObject($objects[0], $metaModel);
+		}
+		
+		if (!empty($this->sideloadObjects)) {
+			foreach ($this->sideloadObjects as $flowModelName => $objects) {
+//				\TYPO3\Flow\var_dump($flowModelName);
+				$associationMetaModel = $this->modelReflectionService->findByFlowModelName($flowModelName);
+				$associationResourceName = $associationMetaModel->getResourceName();
+				
+				foreach ($objects as $object) {
+					$result[$associationResourceName][] = $this->serializeObject($object, $associationMetaModel);
+//					\TYPO3\Flow\var_dump($object);
+				}
+				
+			}
 		}
 		
 		return json_encode((object)$result);
@@ -65,7 +83,7 @@ class EmberSerializer {
 		
 			// add id 
 		$result['id'] = $this->persistenceManager->getIdentifierByObject($object);
-				
+		
 			// add properties with values
 		foreach ((array) $metaModel->getProperties() as $property) {
 			$getterName = 'get' . ucfirst($property->getName());
@@ -74,7 +92,8 @@ class EmberSerializer {
 			
 				// only include in result if has value
 			if (isset($value)) {
-				$result[$property->getName()] = $value; 
+				$propertyName = NamingUtility::decamelize($property->getName());
+				$result[$propertyName] = $value; 
 			}
 		}
 		
@@ -84,38 +103,63 @@ class EmberSerializer {
 			$associatedObjects = $object->$getterName();
 			
 				// only include in result if contains an object
-			if (isset($associatedObjects)) {
-				$result[$association->getName()] = $this->serializeAssociation($associatedObjects, $association); 
+			if (isset($associatedObjects) && !empty($associatedObjects)) {
+				if ($association->getIsCollection()) {
+					if ($association->getSideload()) {
+						$modelName = $this->modelReflectionService->findByFlowModelName($association->getFlowModelName())->getModelName();
+						$name = NamingUtility::decamelize($modelName) . '_ids'; // case: hasMany + sideload association
+						// TODO: check why ember uses this crazy naming convention, seems wrong (how to properly get from eg. tasks to task_ids)
+					} elseif ($association->getEmbedded() === "always" || $association->getEmbedded() === "load") {
+						$name = NamingUtility::decamelize($association->getEmberName()); // case: hasMany + embed association
+					} else {
+						$modelName = $this->modelReflectionService->findByFlowModelName($association->getFlowModelName())->getModelName();
+						$name = NamingUtility::decamelize($modelName) . '_ids'; // case: hasMany (array of ids)
+						// TODO: check why ember uses this crazy naming convention, seems wrong (how to properly get from eg. tasks to task_ids)
+					}
+				} else {
+					$name = NamingUtility::decamelize($association->getEmberName()) . '_id'; // case: belongsTo
+				}
+				
+				$result[$name] = $this->serializeAssociation($associatedObjects, $association); 
 			}
 		}
 		
 		return $result;
-		
 	}
 	
 	
-	protected function serializeAssociation(array $objects, Association $association) {
+	protected function serializeAssociation($objects, Association $association) {
 		$result = array();
-		
 		$associationFlowModelName = $association->getFlowModelName();
 		$associationMetaModel = $this->modelReflectionService->findByFlowModelName($associationFlowModelName);
 		
-		if ($association->getSideload()) {
-			foreach ($objects as $object) {
-				$id = $this->persistenceManager->getIdentifierByObject($object);
-				$this->sideloadObjects['$associationFlowModelName'][$id] = $object;
-			}
-		} elseif ($association->getEmbedded === "always" || $association->getEmbedded === "load") {
-			foreach ($objects as $object) {
-				$result[] = $this->serializeObject($object, $associationMetaModel);
+		if ($association->getIsCollection()) {
+			if ($association->getSideload()) {
+				// case: hasMany + sideload association
+				foreach ($objects as $object) {
+					$id = $this->persistenceManager->getIdentifierByObject($object);
+					$this->sideloadObjects[$associationFlowModelName][$id] = $object;
+					$result[] = $this->persistenceManager->getIdentifierByObject($object);
+				}
+			} elseif ($association->getEmbedded() === "always" || $association->getEmbedded() === "load") {
+				// case: hasMany + embed association
+				foreach ($objects as $object) {
+					$result[] = $this->serializeObject($object, $associationMetaModel);
+				}
+			} else {
+				// case: hasMany (array of ids)
+				foreach ($objects as $object) {
+					$result[] = $this->persistenceManager->getIdentifierByObject($object); // add id
+				}
 			}
 		} else {
-			foreach ($objects as $object) {
-					// add id
-				$result[] = $this->persistenceManager->getIdentifierByObject($object);
+			// case: belongsTo
+			$result = $this->persistenceManager->getIdentifierByObject($objects);
+			
+			if ($association->getSideload()) {
+				$this->sideloadObjects[$associationFlowModelName][] = $objects;
 			}
 		}
-		
 		return $result;
 	}
 

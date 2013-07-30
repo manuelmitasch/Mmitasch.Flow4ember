@@ -76,7 +76,7 @@ class ModelReflectionService {
 	 * @return \Mmitasch\Flow4ember\Domain\Model\Metamodel
 	 */
 	public function findByResourceName($resourceName) {
-		foreach ($this->metaModels as $flowname => $metaModel) {
+		foreach ($this->metaModels as $flowName => $metaModel) {
 			if ($metaModel->getResourceName() === $resourceName) return $metaModel;
 		}
 		return NULL;

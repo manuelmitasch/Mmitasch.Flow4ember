@@ -10,7 +10,7 @@ use TYPO3\Flow\Annotations as Flow;
 
 class Association {
 
-	function __construct($flowName, $emberName, $flowModelName, $flowType, $emberType, $sideload, $embedded) {
+	function __construct($flowName, $emberName, $flowModelName, $flowType, $emberType, $sideload, $embedded, $isCollection) {
 		$this->flowName = $flowName;
 		$this->emberName = $emberName;
 		$this->flowModelName = $flowModelName;
@@ -18,6 +18,7 @@ class Association {
 		$this->emberType = $emberType;
 		$this->sideload = $sideload;
 		$this->embedded = $embedded;
+		$this->isCollection = $isCollection;
 	}
 
 		
@@ -58,6 +59,11 @@ class Association {
 	 * @var string
 	 */
 	protected $embedded;
+	
+	/**
+	 * @var boolean
+	 */
+	protected $isCollection;
 
 
 	/**
@@ -144,7 +150,13 @@ class Association {
 		$this->emberType = $emberType;
 	}
 
+	public function getIsCollection() {
+		return $this->isCollection;
+	}
 
+	public function setIsCollection($isCollection) {
+		$this->isCollection = $isCollection;
+	}
 
 
 }

@@ -203,9 +203,11 @@ class Metamodel {
 				
 					// get ember type of association
 				if ($flowType === 'OneToOne' || $flowType === 'OneToMany') {
-					$emberType = 'belongsTo';
-				} else {
 					$emberType = 'hasMany';
+					$isCollection = TRUE;
+				} else {
+					$emberType = 'belongsTo';
+					$isCollection = FALSE;
 				}
 				
 				// TODO: check Ember.yaml if association should be sideloaded
@@ -218,7 +220,7 @@ class Metamodel {
 				} 
 				
 					// add association
-				$this->associations[$propertyName] = new Association($propertyName, $propertyName, $flowModelName, $flowType, $emberType, $sideload, $embedded);
+				$this->associations[$propertyName] = new Association($propertyName, $propertyName, $flowModelName, $flowType, $emberType, $sideload, $embedded, $isCollection);
 				
 			} else {
 				$converter = $this->converterService->getTypeConverter($flowType['type'], $emberType);
