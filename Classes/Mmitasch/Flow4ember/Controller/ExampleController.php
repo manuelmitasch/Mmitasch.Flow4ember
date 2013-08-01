@@ -15,7 +15,6 @@ class ExampleController extends EmberRestController {
 	public function orderedAction() {
 		$resourceRecords = $this->metaModel->getRepository()->findTasksOrdered()->toArray();
 		$this->view->assign('content', $resourceRecords);
-		$this->view->assign('metaModel', $this->metaModel);
 		$this->view->assign('isCollection', TRUE);
 	}
 }
