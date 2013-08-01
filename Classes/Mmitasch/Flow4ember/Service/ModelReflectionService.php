@@ -69,7 +69,7 @@ class ModelReflectionService {
 		if (array_key_exists($flowModelName, $this->metaModels)) {
 			return $this->metaModels[$flowModelName];
 		} else {
-			throw new \RuntimeException('Could not find Metamodel for class: ' . $flowModelName . '.', 1361478318); 
+			throw new \RuntimeException('Could not find Metamodel for class: ' . $flowModelName . '.', 1375148357); 
 		}
 	}
 	
@@ -84,7 +84,7 @@ class ModelReflectionService {
 			if ($metaModel->getResourceName() === $resourceName) return $metaModel;
 		}
 		
-		throw new \RuntimeException('Could not find Metamodel for resourceName: ' . $resourceName . '.', 1361478317); 
+		throw new \RuntimeException('Could not find Metamodel for resourceName: ' . $resourceName . '.', 1375148356); 
 	}
 	
 	/**

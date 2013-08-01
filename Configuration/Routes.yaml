@@ -1,17 +1,27 @@
 -
-  name: 'REST API Resources'
+  name: 'Example for a customized ember controller'
+  uriPattern: 'rest/example'
+  defaults:
+    '@package': 'Mmitasch.Flow4ember'
+    '@controller': 'Example'
+    '@format': 'json'
+    '@action': 'ordered'
+
+-
+  name: 'Ember REST API: Resources'
   uriPattern: 'rest/{resourceName}'
   defaults:
     '@package': 'Mmitasch.Flow4ember'
     '@controller': 'EmberRest'
     '@format': 'json'
+    '@action': 'list'
   routeParts:
     'resourceName':
       handler: 'Mmitasch\Flow4ember\Routing\ResourceNameRoutePart'
 
 -
-  name: 'REST API Resource'
-  uriPattern: 'rest/{resourceName}/{resourceId}'
+  name: 'Ember REST API: Single resource'
+  uriPattern: 'rest/{resourceName}/{resource}'
   defaults:
     '@package': 'Mmitasch.Flow4ember'
     '@controller': 'EmberRest'
@@ -20,9 +30,8 @@
     'resourceName':
       handler: 'Mmitasch\Flow4ember\Routing\ResourceNameRoutePart'
 
-
 -
-  name: 'REST API Resources by filter'
+  name: 'Ember REST API: Resources by filter'
   uriPattern: 'rest/{resourceName}(/{filter})'
   defaults:
     '@package': 'Mmitasch.Flow4ember'

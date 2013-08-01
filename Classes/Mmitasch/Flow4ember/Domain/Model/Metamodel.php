@@ -197,8 +197,7 @@ class Metamodel {
 				} elseif (array_key_exists('Doctrine\ORM\Mapping\ManyToOne', $annotations)) {
 					$flowType = 'ManyToOne';
 				} else {
-					//TODO: check how to make proper exception code
-					throw new \RuntimeException('Could not identify association type.', 1361478316); 
+					throw new \RuntimeException('Could not identify association type.', 1375148355); 
 				}
 				
 					// get ember type of association
