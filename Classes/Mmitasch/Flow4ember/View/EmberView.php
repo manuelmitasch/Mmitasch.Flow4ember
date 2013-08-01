@@ -31,11 +31,9 @@ class EmberView extends \TYPO3\Flow\Mvc\View\AbstractView {
 	 */
 	public function render() {
 //		$this->controllerContext->getResponse()->setHeader('Content-Type', 'application/json'); // TODO: uncomment
-
 		$isCollection = (array_key_exists('isCollection', $this->variables) && $this->variables['isCollection'] == TRUE);
-		$content = $this->variables['content'];
 
-		return $this->serializer->serialize($content, $isCollection);
+		return $this->serializer->serialize($this->variables['content'], $isCollection);
 	}
 
 }

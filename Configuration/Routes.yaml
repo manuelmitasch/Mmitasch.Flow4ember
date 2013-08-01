@@ -21,7 +21,7 @@
 
 -
   name: 'Ember REST API: Single resource'
-  uriPattern: 'rest/{resourceName}/{resource}'
+  uriPattern: 'rest/{resourceName}/{resourceId}'
   defaults:
     '@package': 'Mmitasch.Flow4ember'
     '@controller': 'EmberRest'

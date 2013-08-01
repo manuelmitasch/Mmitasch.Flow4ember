@@ -14,11 +14,11 @@ interface SerializerInterface {
 	/**
 	 * Used for serializing inputted objects
 	 * 
-	 * @param array $objects
+	 * @param mixed $objects
 	 * @param boolean $isCollection
 	 * @return type
 	 */
-	public function serialize (array $objects, $isCollection);
+	public function serialize ($objects, $isCollection);
 
 }
 

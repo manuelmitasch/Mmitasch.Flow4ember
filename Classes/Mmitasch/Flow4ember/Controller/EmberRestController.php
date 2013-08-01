@@ -123,9 +123,18 @@ class EmberRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 			$this->metaModel = $this->modelReflectionService->findByResourceName($this->resourceName);
 		}
 		
+			// check if repository exists
 		if ($this->metaModel->getRepository() === NULL) {
 			$this->throwStatus(500, NULL, 'No repository found for model with resource name: ' . $this->metaModel->getResourceName() . '.');
 		}
+		
+		if ($this->request->hasArgument('resourceId')) {
+				// set model id in request argument
+			$this->request->setArgument('model', array('__identity' => $this->request->getArgument('resourceId')));
+				// set data type for property mapper
+			$this->arguments->addNewArgument('model', $this->metaModel->getFlowModelName(), TRUE); 
+		}
+		
 	}
 	
 
@@ -135,7 +144,7 @@ class EmberRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 	 * @return void
 	 */
 	public function initializeCreateAction() {
-		$propertyMappingConfiguration = $this->arguments['resourceName']->getPropertyMappingConfiguration();
+		$propertyMappingConfiguration = $this->arguments['model']->getPropertyMappingConfiguration();
 		$propertyMappingConfiguration->setTypeConverterOption('TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter', \TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter::CONFIGURATION_CREATION_ALLOWED, TRUE);
 		$propertyMappingConfiguration->allowAllProperties();
 	}
@@ -146,7 +155,7 @@ class EmberRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 	 * @return void
 	 */
 	public function initializeUpdateAction() {
-		$propertyMappingConfiguration = $this->arguments['resourceName']->getPropertyMappingConfiguration();
+		$propertyMappingConfiguration = $this->arguments['model']->getPropertyMappingConfiguration();
 		$propertyMappingConfiguration->setTypeConverterOption('TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter', \TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter::CONFIGURATION_MODIFICATION_ALLOWED, TRUE);
 		$propertyMappingConfiguration->allowAllProperties();
 	}
@@ -185,57 +194,53 @@ class EmberRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 	 * @return void
 	 */
 	public function listAction() {
-		$resourceRecords = $this->metaModel->getRepository()->findAll()->toArray();
-		$this->view->assign('content', $resourceRecords);
-		$this->view->assign('metaModel', $this->metaModel);
+		$models = $this->metaModel->getRepository()->findAll()->toArray();
+		$this->view->assign('content', $models);
 		$this->view->assign('isCollection', TRUE);
 	}
 
 	/**
 	 * Shows a resource/model
 	 *
-	 * @param string $resource The model to show
+	 * @param object $model the model
 	 * @return void
 	 */
-	public function showAction($resource) {
-		$resource = array($this->metaModel->getRepository()->findByIdentifier($resource));
-		$this->view->assign('content', $resource);
-		$this->view->assign('metaModel', $this->metaModel);
+	public function showAction($model) {
+		$this->view->assign('content', $model);
 	}
 
 	/**
 	 * Create a model
 	 *
-	 * @param string $model A new model to add
+	 * @param string $model The new model to add
 	 * @return void
 	 */
-	public function createAction($resource) {
-		$this->metaModel->getRepository()->add($resource);
+	public function createAction($model) {
+		$newModel = $this->metaModel->getRepository()->add($model);
 		$this->persistenceManager->persistAll();
 		$this->response->setStatus(201);
-		$this->view->assign('content', $resource);
-		$this->view->assign('metaModel', $this->metaModel);
+		$this->view->assign('content', $newModel);
 	}
 
 	/**
 	 * Update the given model
 	 *
-	 * @param string $resource The task to update
+	 * @param string $model The task to update
 	 * @return void
 	 */
-	public function updateAction($resource) {
-		$this->metaModel->getRepository()->update($resource);
+	public function updateAction($model) {
+		$this->metaModel->getRepository()->update($model);
 		$this->response->setStatus(204);
 	}
 
 	/**
 	 * Removes the given model
 	 *
-	 * @param string $resource The model to delete
+	 * @param string $model The model to delete
 	 * @return string
 	 */
-	public function deleteAction($resource) {
-		$this->metaModel->getRepository()->remove($resource);
+	public function deleteAction($model) {
+		$this->metaModel->getRepository()->remove($model);
 		$this->response->setStatus(204);
 		return '';
 	}
@@ -247,7 +252,7 @@ class EmberRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 	 */
 	public function optionAction() {
 		$allowedMethods = array('GET');
-		$uuid = $this->request->getArgument('resource');
+		$uuid = $this->request->getArgument('resourceId');
 		$model = $this->metaModel->getRepository()->findByIdentifier($uuid);
 		if ($model === NULL) {
 			$this->throwStatus(404, NULL, 'The model "' . $uuid . '" does not exist');

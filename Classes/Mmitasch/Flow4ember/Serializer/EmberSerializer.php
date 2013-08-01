@@ -36,13 +36,13 @@ class EmberSerializer implements SerializerInterface {
 	/**
 	 * Used for serializing inputted objects
 	 * 
-	 * @param array $objects
+	 * @param mixed $objects Passed objects (can be array of objects or single object)
 	 * @param boolean $isCollection
 	 * @return type
 	 */
-	public function serialize (array $objects, $isCollection) {
+	public function serialize ($objects, $isCollection) {
 		$result = array();
-		$flowModelName = get_class($objects[0]);
+		$flowModelName = is_array($objects) ? get_class($objects[0]) : get_class($objects);
 		$metaModel = $this->modelReflectionService->findByFlowModelName($flowModelName);
 		
 		if ($isCollection) {
@@ -50,19 +50,22 @@ class EmberSerializer implements SerializerInterface {
 			$result[$resourceName] = $this->serializeCollection($objects, $metaModel);
 		} else {
 			$resourceNameSingular = $metaModel->getResourceNameSingular();
-			$result[$resourceNameSingular] = $this->serializeObject($objects[0], $metaModel);
+			$result[$resourceNameSingular] = $this->serializeObject($objects, $metaModel);
 		}
 		
 		if (!empty($this->sideloadObjects)) {
 			foreach ($this->sideloadObjects as $flowModelName => $objects) {
-//				\TYPO3\Flow\var_dump($flowModelName);
 				$associationMetaModel = $this->modelReflectionService->findByFlowModelName($flowModelName);
 				$associationResourceName = $associationMetaModel->getResourceName();
 				
-				foreach ($objects as $object) {
-					$result[$associationResourceName][] = $this->serializeObject($object, $associationMetaModel);
-//					\TYPO3\Flow\var_dump($object);
+				if (is_array($objects)) {
+					foreach ($objects as $object) {
+						$result[$associationResourceName][] = $this->serializeObject($object, $associationMetaModel);
+					}
+				} else {
+					$result[$associationResourceName][] = $this->serializeObject($objects, $associationMetaModel);
 				}
+				
 				
 			}
 		}
