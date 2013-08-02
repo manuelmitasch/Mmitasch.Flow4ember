@@ -14,7 +14,6 @@
     '@package': 'Mmitasch.Flow4ember'
     '@controller': 'EmberRest'
     '@format': 'json'
-    '@action': 'list'
   routeParts:
     'resourceName':
       handler: 'Mmitasch\Flow4ember\Routing\ResourceNameRoutePart'
@@ -26,18 +25,6 @@
     '@package': 'Mmitasch.Flow4ember'
     '@controller': 'EmberRest'
     '@format': 'json'
-  routeParts:
-    'resourceName':
-      handler: 'Mmitasch\Flow4ember\Routing\ResourceNameRoutePart'
-
--
-  name: 'Ember REST API: Resources by filter'
-  uriPattern: 'rest/{resourceName}(/{filter})'
-  defaults:
-    '@package': 'Mmitasch.Flow4ember'
-    '@controller': 'EmberRest'
-    '@format': 'json'
-    'filter': ''
   routeParts:
     'resourceName':
       handler: 'Mmitasch\Flow4ember\Routing\ResourceNameRoutePart'

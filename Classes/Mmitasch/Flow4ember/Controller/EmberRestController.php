@@ -128,16 +128,19 @@ class EmberRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 			$this->throwStatus(500, NULL, 'No repository found for model with resource name: ' . $this->metaModel->getResourceName() . '.');
 		}
 		
-		if ($this->request->hasArgument('resourceId')) {
+		$arguments = $this->request->getArguments();
+
+		if (array_key_exists('resourceId', $arguments)) {
 				// set model id in request argument
-			$this->request->setArgument('model', array('__identity' => $this->request->getArgument('resourceId')));
+			$arguments['model'] = array('__identity' => $this->request->getArgument('resourceId'));
 				// set data type for property mapper
 			$this->arguments->addNewArgument('model', $this->metaModel->getFlowModelName(), TRUE); 
 		}
-		
+		unset($arguments['resourceName']);
+		$this->request->setArguments($arguments);
 	}
 	
-
+	
 	/**
 	 * Allow creation of resources in createAction()
 	 *
@@ -194,7 +197,21 @@ class EmberRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 	 * @return void
 	 */
 	public function listAction() {
-		$models = $this->metaModel->getRepository()->findAll()->toArray();
+		$arguments = $this->request->getArguments();
+		$models = array();
+		
+		// enable bulk loading by ids
+		if (array_key_exists('ids', $arguments)) {
+			foreach ($arguments['ids'] as $id) {
+				$object = $this->metaModel->getRepository()->findByIdentifier($id);
+				if (!empty($object)) {
+					$models[] = $object;
+				}
+			}
+		} else {
+			$models = $this->metaModel->getRepository()->findAll()->toArray();
+		}
+
 		$this->view->assign('content', $models);
 		$this->view->assign('isCollection', TRUE);
 	}

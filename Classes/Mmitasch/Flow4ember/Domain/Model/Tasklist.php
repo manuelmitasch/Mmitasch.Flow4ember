@@ -12,8 +12,9 @@ use Doctrine\ORM\Mapping as ORM,
 
 /**
  * Exists for testing purposes only.
+ * 
  * @Flow\Entity
- * @Ember\Resource(name="lists")
+ * @Ember\Resource
  */
 class Tasklist {
 
@@ -25,7 +26,6 @@ class Tasklist {
 	/**
 	 * @var \Doctrine\Common\Collections\Collection<\Mmitasch\Flow4ember\Domain\Model\Task>
 	 * @ORM\OneToMany(mappedBy="list")
-	 * @Ember\Sideload
 	 */
 	protected $tasks;
 
