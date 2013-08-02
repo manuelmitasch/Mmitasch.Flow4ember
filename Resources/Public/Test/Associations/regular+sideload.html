@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+	<title>Ember Data Associaton Test</title>
+</head>
+<body>
+
+  <script type="text/x-handlebars">
+    <h2>Ember Data Association Test</h2>
+
+    {{outlet}}
+  </script>
+
+  <script type="text/x-handlebars" data-template-name="index">
+    <ul>
+    {{#each tasklist in model}}
+      <li>
+        {{tasklist.name }}{{tasklist}}
+        <ul>
+          {{#each task in tasklist.tasks}}
+            <li>{{task.name}} {{task}}</li>
+          {{/each}}
+        </ul>
+      </li>
+    {{/each}}
+    </ul>
+  </script>
+
+  <script src="Scripts/Library/jquery-1.9.1.js"></script>
+  <script src="Scripts/Library/handlebars-1.0.0-rc.4.js"></script>
+  <script src="Scripts/Library/ember-1.0.0-rc.6.1.js"></script>
+  <script src="Scripts/Library/ember-data-0bd862cc0c3a8da036e82329c0b82c6e60c11299.js"></script>
+  <script src="Scripts/app.js"></script>
+  <script src="Scripts/model-regular-and-sideload.js"></script>
+
+</body>
+</html>
