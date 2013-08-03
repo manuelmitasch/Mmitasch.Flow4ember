@@ -16,10 +16,10 @@
     <ul>
     {{#each tasklist in model}}
       <li>
-        {{tasklist.name }}{{tasklist}}
+        {{tasklist.name }}: {{tasklist.id}}
         <ul>
           {{#each task in tasklist.tasks}}
-            <li>{{task.name}} {{task}}</li>
+            <li>{{task.name}}: {{task.id}}</li>
           {{/each}}
         </ul>
       </li>

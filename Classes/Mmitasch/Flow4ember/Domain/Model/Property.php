@@ -6,7 +6,8 @@ namespace Mmitasch\Flow4ember\Domain\Model;
  *                                                                        *
  *                                                                        */
 
-use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Annotations as Flow,
+	Mmitasch\Flow4ember\Utility\NamingUtility;
 
 class Property {
 
@@ -58,6 +59,13 @@ class Property {
 	 */
 	public function setConverter($converter) {
 		$this->converter = $converter;
+	}
+	
+	/**
+	 * @return string
+	 */
+	public function getPayloadName() {
+		return NamingUtility::decamelize($this->name);
 	}
 
 }

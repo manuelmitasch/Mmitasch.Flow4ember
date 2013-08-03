@@ -11,17 +11,12 @@ use TYPO3\Flow\Annotations as Flow,
 
 /**
  */
-class EmberView extends \TYPO3\Flow\Mvc\View\AbstractView {
+class EmberView extends \TYPO3\Flow\Mvc\View\AbstractView implements EmberViewInterface {
 
 	/**
-	 * @var Mmitasch\Flow4ember\Serializer\SerializerInterface
+	 * @var \Mmitasch\Flow4ember\Serializer\SerializerInterface
 	 */
 	protected $serializer;
-	
-	function __construct() {
-		$this->serializer = new EmberSerializer();
-	}
-
 	
 	/**
 	 * Transforms the value view variable to a serializable
@@ -30,11 +25,20 @@ class EmberView extends \TYPO3\Flow\Mvc\View\AbstractView {
 	 * @return string The JSON encoded variables
 	 */
 	public function render() {
-//		$this->controllerContext->getResponse()->setHeader('Content-Type', 'application/json'); // TODO: uncomment
+		$this->controllerContext->getResponse()->setHeader('Content-Type', 'application/json'); // TODO: uncomment
 		$isCollection = (array_key_exists('isCollection', $this->variables) && $this->variables['isCollection'] == TRUE);
-
 		return $this->serializer->serialize($this->variables['content'], $isCollection);
 	}
+	
+	/**
+	 * @param \Mmitasch\Flow4ember\Serializer\SerializerInterface $serializer
+	 */
+	public function setSerializer(\Mmitasch\Flow4ember\Serializer\SerializerInterface $serializer) {
+		$this->serializer = $serializer;
+	}
+
+
+
 
 }
 

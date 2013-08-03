@@ -6,7 +6,8 @@ namespace Mmitasch\Flow4ember\Controller;
  *                                                                        *
  *                                                                        */
 
-use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Annotations as Flow,
+ \Mmitasch\Flow4ember\Serializer\EmberSerializer;
 
 /**
  * An action controller for RESTful web services
@@ -59,6 +60,21 @@ class EmberRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 	 */
 	protected $response;
 	
+	/**
+	 * @var array
+	 */
+	protected $supportedMediaTypes = array('application/json');
+	
+	/**
+	 * @var Mmitasch\Flow4ember\Serializer\SerializerInterface
+	 */
+	protected $serializer;
+	
+	function __construct() {
+		$this->serializer = new EmberSerializer();
+		parent::__construct();
+	}
+	
 	
 	/**
 	 * Determines the action method and assures that the method exists.
@@ -99,6 +115,18 @@ class EmberRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 	}
 	
 	/**
+	 * Initializes the view before invoking an action method.
+	 *
+	 * @param \TYPO3\Flow\Mvc\View\ViewInterface $view The view to be initialized
+	 * @return void
+	 */
+	protected function initializeView(\TYPO3\Flow\Mvc\View\ViewInterface $view) {
+		if (method_exists($view, 'setSerializer')) {
+			$view->setSerializer($this->serializer);	
+		}
+	}
+	
+	/**
 	 * Initializes the controller before invoking an action method.
 	 *
 	 * @return void
@@ -133,7 +161,7 @@ class EmberRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 		if (array_key_exists('resourceId', $arguments)) {
 				// set model id in request argument
 			$arguments['model'] = array('__identity' => $this->request->getArgument('resourceId'));
-				// set data type for property mapper
+				// set data type for model argument
 			$this->arguments->addNewArgument('model', $this->metaModel->getFlowModelName(), TRUE); 
 		}
 		unset($arguments['resourceName']);
@@ -147,9 +175,22 @@ class EmberRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 	 * @return void
 	 */
 	public function initializeCreateAction() {
+			// set data type of model argument
+		$this->arguments->addNewArgument('model', $this->metaModel->getFlowModelName(), TRUE);
+		
 		$propertyMappingConfiguration = $this->arguments['model']->getPropertyMappingConfiguration();
 		$propertyMappingConfiguration->setTypeConverterOption('TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter', \TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter::CONFIGURATION_CREATION_ALLOWED, TRUE);
 		$propertyMappingConfiguration->allowAllProperties();
+		
+		$arguments = $this->request->getArguments();
+		$resourceName = $this->metaModel->getResourceNameSingular();
+		
+		if (array_key_exists($resourceName, $arguments)) {
+			$arguments['model'] = $this->serializer->deserialize($arguments[$resourceName], $this->metaModel);
+			$this->request->setArguments($arguments);
+		} else {
+			$this->throwStatus(400, NULL, 'No resource found with correct resource hash. Expected: {\'' . $resourceName . '\': {}}');
+		}
 	}
 
 	/**
@@ -158,9 +199,25 @@ class EmberRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 	 * @return void
 	 */
 	public function initializeUpdateAction() {
+			// set data type of model argument
+		$this->arguments->addNewArgument('model', $this->metaModel->getFlowModelName(), TRUE);
+		
 		$propertyMappingConfiguration = $this->arguments['model']->getPropertyMappingConfiguration();
 		$propertyMappingConfiguration->setTypeConverterOption('TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter', \TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter::CONFIGURATION_MODIFICATION_ALLOWED, TRUE);
 		$propertyMappingConfiguration->allowAllProperties();
+		
+		$arguments = $this->request->getArguments();
+		$resourceName = $this->metaModel->getResourceNameSingular();
+		
+		if (array_key_exists($resourceName, $arguments)) {
+			if (array_key_exists('model', $arguments)) {
+				$arguments['model'] = array_merge((array)$arguments['model'],(array)$this->serializer->deserialize($arguments[$resourceName], $this->metaModel));
+			} else {
+				$arguments['model'] = $this->serializer->deserialize($arguments[$resourceName], $this->metaModel);
+			}			$this->request->setArguments($arguments);
+		} else {
+			$this->throwStatus(400, NULL, 'No resource found with correct resource hash. Expected: {\'' . $resourceName . '\': {}}');
+		}
 	}
 
 	/**
@@ -229,25 +286,26 @@ class EmberRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 	/**
 	 * Create a model
 	 *
-	 * @param string $model The new model to add
+	 * @param object $model The new model to add
 	 * @return void
 	 */
 	public function createAction($model) {
-		$newModel = $this->metaModel->getRepository()->add($model);
+		$this->metaModel->getRepository()->add($model);
 		$this->persistenceManager->persistAll();
 		$this->response->setStatus(201);
-		$this->view->assign('content', $newModel);
+		$this->view->assign('content', $model);
 	}
 
 	/**
 	 * Update the given model
 	 *
-	 * @param string $model The task to update
+	 * @param object $model The task to update
 	 * @return void
 	 */
 	public function updateAction($model) {
 		$this->metaModel->getRepository()->update($model);
 		$this->response->setStatus(204);
+		$this->view->assign('content', $model);
 	}
 
 	/**

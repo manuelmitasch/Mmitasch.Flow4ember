@@ -19,6 +19,15 @@ interface SerializerInterface {
 	 * @return type
 	 */
 	public function serialize ($objects, $isCollection);
+	
+	/**
+	 * Deserialize string to array with properties that will be used by the datamapper for the creation of models
+	 * 
+	 * @param type $data
+	 * @param \Mmitasch\Flow4ember\Domain\Model\Metamodel $metaModel
+	 * @return array Property array for datamapper
+	 */
+	public function deserialize ($data, $metaModel);
 
 }
 

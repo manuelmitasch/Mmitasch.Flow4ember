@@ -6,7 +6,8 @@ namespace Mmitasch\Flow4ember\Domain\Model;
  *                                                                        *
  *                                                                        */
 
-use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Annotations as Flow,
+	Mmitasch\Flow4ember\Utility\NamingUtility;
 
 class Association {
 
@@ -96,6 +97,13 @@ class Association {
 		$this->emberName = $emberName;
 	}
 
+	/**
+	 * @return string
+	 */
+	public function getEmberPayloadName() {
+		return NamingUtility::decamelize($this->emberName);
+	}
+	
 	/**
 	 * @return boolean
 	 */

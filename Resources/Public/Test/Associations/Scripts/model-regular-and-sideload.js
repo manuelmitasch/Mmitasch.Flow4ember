@@ -10,17 +10,17 @@ App.Task = DS.Model.extend({
 
 
 Ember.run.once(this, function() {
-	var list = App.Tasklist.find('10a315ed-9875-f6cb-448f-af3575bea5e7');
-	Ember.run.once(list, function() {
-		debugger;
-	});
+	// var list = App.Tasklist.find('10a315ed-9875-f6cb-448f-af3575bea5e7');
+	// Ember.run.once(list, function() {
+	// 	debugger;
+	// });
 
-	debugger;
+	// debugger;
 	// list.set('name', 'other name');
 	// list.save();
 
 
-	// var list = App.Tasklist.createRecord({ name: "Peter", tasks: []});
-	// list.save();
+	var list = App.Tasklist.createRecord({ name: "Peter", tasks: []});
+	list.save();
 });
 

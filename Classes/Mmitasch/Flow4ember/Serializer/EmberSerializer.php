@@ -53,22 +53,22 @@ class EmberSerializer implements SerializerInterface {
 			$result[$resourceNameSingular] = $this->serializeObject($objects, $metaModel);
 		}
 		
-		if (!empty($this->sideloadObjects)) {
-			foreach ($this->sideloadObjects as $flowModelName => $objects) {
-				$associationMetaModel = $this->modelReflectionService->findByFlowModelName($flowModelName);
-				$associationResourceName = $associationMetaModel->getResourceName();
-				
-				if (is_array($objects)) {
-					foreach ($objects as $object) {
-						$result[$associationResourceName][] = $this->serializeObject($object, $associationMetaModel);
-					}
-				} else {
-					$result[$associationResourceName][] = $this->serializeObject($objects, $associationMetaModel);
-				}
-				
-				
-			}
-		}
+//		if (!empty($this->sideloadObjects)) {
+//			foreach ($this->sideloadObjects as $flowModelName => $objects) {
+//				$associationMetaModel = $this->modelReflectionService->findByFlowModelName($flowModelName);
+//				$associationResourceName = $associationMetaModel->getResourceName();
+//				
+//				if (is_array($objects)) {
+//					foreach ($objects as $object) {
+//						$result[$associationResourceName][] = $this->serializeObject($object, $associationMetaModel);
+//					}
+//				} else {
+//					$result[$associationResourceName][] = $this->serializeObject($objects, $associationMetaModel);
+//				}
+//				
+//				
+//			}
+//		}
 		
 		return json_encode((object)$result);
 	}
@@ -112,7 +112,7 @@ class EmberSerializer implements SerializerInterface {
 			
 				// only include in result if has value
 			if (isset($value)) {
-				$propertyName = NamingUtility::decamelize($property->getName());
+				$propertyName = $property->getPayloadName();
 				$result[$propertyName] = $value; 
 			}
 		}
@@ -127,7 +127,7 @@ class EmberSerializer implements SerializerInterface {
 					// define name of association property
 				if ($association->getIsCollection()) {
 					if ($association->getEmbedded() === "always" || $association->getEmbedded() === "load") {
-						$name = NamingUtility::decamelize($association->getEmberName()); // case: hasMany + embed association
+						$name = $association->getEmberPayloadName(); // case: hasMany + embed association
 					} elseif ($association->getSideload()) {
 						$modelName = $this->modelReflectionService->findByFlowModelName($association->getFlowModelName())->getModelName();
 						$name = NamingUtility::decamelize($modelName) . '_ids'; // case: hasMany + sideload association
@@ -138,7 +138,7 @@ class EmberSerializer implements SerializerInterface {
 						// TODO: check why ember uses this crazy naming convention, seems wrong (how to properly get from eg. tasks to task_ids)
 					}
 				} else {
-					$name = NamingUtility::decamelize($association->getEmberName()) . '_id'; // case: belongsTo
+					$name = $association->getEmberPayloadName() . '_id'; // case: belongsTo
 				}
 				
 				$result[$name] = $this->serializeAssociation($associatedObjects, $association); 
@@ -190,6 +190,34 @@ class EmberSerializer implements SerializerInterface {
 		return $result;
 	}
 
+	
+	
+	/**
+	 * Deserialize string to array with properties that will be used by the datamapper for the creation of models
+	 * 
+	 * @param type $data
+	 * @param \Mmitasch\Flow4ember\Domain\Model\Metamodel $metaModel
+	 * @return array Property array for datamapper
+	 */
+	public function deserialize ($data, $metaModel) {
+		$result = array();
+//		$data = json_decode($data, TRUE);
+//		var_dump($data);
+//		var_dump(json_decode($data, TRUE)); die();
+		
+		if (array_key_exists('id', $data)) {
+			$result['__identity'] = $data['id'];
+		}
+		
+		foreach ((array) $metaModel->getProperties() as $property) {
+			if (array_key_exists($property->getPayloadName(), $data)) {
+					// TODO: use typconverter function
+				$result[$property->getName()] = $data[$property->getPayloadName()];
+			}
+		}
+		
+		return $result;
+	}
 	
 
 }
