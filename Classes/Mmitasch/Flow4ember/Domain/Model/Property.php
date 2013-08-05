@@ -60,13 +60,6 @@ class Property {
 	public function setConverter($converter) {
 		$this->converter = $converter;
 	}
-	
-	/**
-	 * @return string
-	 */
-	public function getPayloadName() {
-		return NamingUtility::decamelize($this->name);
-	}
 
 }
 ?>

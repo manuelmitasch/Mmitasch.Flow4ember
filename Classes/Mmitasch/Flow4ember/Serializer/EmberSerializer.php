@@ -112,8 +112,8 @@ class EmberSerializer implements SerializerInterface {
 			
 				// only include in result if has value
 			if (isset($value)) {
-				$propertyName = $property->getPayloadName();
-				$result[$propertyName] = $value; 
+				$propertyPayloadName = $this->getPayloadName($property->getName());
+				$result[$propertyPayloadName] = $value; 
 			}
 		}
 		
@@ -127,18 +127,18 @@ class EmberSerializer implements SerializerInterface {
 					// define name of association property
 				if ($association->getIsCollection()) {
 					if ($association->getEmbedded() === "always" || $association->getEmbedded() === "load") {
-						$name = $association->getEmberPayloadName(); // case: hasMany + embed association
+						$name = $this->getPayloadName($association->getEmberName()); // case: hasMany + embed association
 					} elseif ($association->getSideload()) {
 						$modelName = $this->modelReflectionService->findByFlowModelName($association->getFlowModelName())->getModelName();
-						$name = NamingUtility::decamelize($modelName) . '_ids'; // case: hasMany + sideload association
+						$name = $this->getPayloadName($modelName) . '_ids'; // case: hasMany + sideload association
 						// TODO: check why ember uses this crazy naming convention, seems wrong (how to properly get from eg. tasks to task_ids)
 					} else {
 						$modelName = $this->modelReflectionService->findByFlowModelName($association->getFlowModelName())->getModelName();
-						$name = NamingUtility::decamelize($modelName) . '_ids'; // case: hasMany (array of ids)
+						$name = $this->getPayloadName($modelName) . '_ids'; // case: hasMany (array of ids)
 						// TODO: check why ember uses this crazy naming convention, seems wrong (how to properly get from eg. tasks to task_ids)
 					}
 				} else {
-					$name = $association->getEmberPayloadName() . '_id'; // case: belongsTo
+					$name = $this->getPayloadName($association->getEmberName()) . '_id'; // case: belongsTo
 				}
 				
 				$result[$name] = $this->serializeAssociation($associatedObjects, $association); 
@@ -210,13 +210,24 @@ class EmberSerializer implements SerializerInterface {
 		}
 		
 		foreach ((array) $metaModel->getProperties() as $property) {
-			if (array_key_exists($property->getPayloadName(), $data)) {
+			$propertyPayloadName = $this->getPayloadName($property->getName());
+			if (array_key_exists($propertyPayloadName, $data)) {
 					// TODO: use typconverter function
-				$result[$property->getName()] = $data[$property->getPayloadName()];
+				$result[$property->getName()] = $data[$propertyPayloadName];
 			}
 		}
 		
+		//TODO: Important!! Add associations.
+		foreach ((array) $metaModel->getAssociations() as $associations) {
+			
+		}
+		
 		return $result;
+	}
+	
+	
+	private function getPayloadName ($name) {
+		return NamingUtility::decamelize($name);
 	}
 	
 

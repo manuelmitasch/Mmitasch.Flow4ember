@@ -98,13 +98,6 @@ class Association {
 	}
 
 	/**
-	 * @return string
-	 */
-	public function getEmberPayloadName() {
-		return NamingUtility::decamelize($this->emberName);
-	}
-	
-	/**
 	 * @return boolean
 	 */
 	public function getSideload() {
