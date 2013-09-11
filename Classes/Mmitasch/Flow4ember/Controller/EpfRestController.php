@@ -7,12 +7,12 @@ namespace Mmitasch\Flow4ember\Controller;
  *                                                                        */
 
 use TYPO3\Flow\Annotations as Flow,
- \Mmitasch\Flow4ember\Serializer\EmberSerializer;
+ \Mmitasch\Flow4ember\Serializer\EpfSerializer;
 
 /**
- * An action controller for RESTful web services
+ * An action controller for RESTful web services EPF style
  */
-class EmberRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
+class EpfRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 
 	/**
 	 * @var \TYPO3\Flow\Log\SystemLoggerInterface
@@ -48,7 +48,7 @@ class EmberRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 	/**
 	 * @var string
 	 */
-	protected $defaultViewObjectName = 'Mmitasch\Flow4ember\View\EmberView';
+	protected $defaultViewObjectName = 'Mmitasch\Flow4ember\View\EpfView';
 
 	/**
 	 * @var \Mmitasch\Flow4ember\Domain\Model\Metamodel 
@@ -84,7 +84,7 @@ class EmberRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 	protected $serializer;
 	
 	function __construct() {
-		$this->serializer = new EmberSerializer();
+		$this->serializer = new EpfSerializer();
 		parent::__construct();
 	}
 	
@@ -321,7 +321,10 @@ class EmberRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 		} else {
 			$models = $this->metaModel->getRepository()->findAll()->toArray();
 		}
-
+		
+		$x=\TYPO3\Flow\var_dump($models, '', TRUE, TRUE);
+		$this->systemLogger->log("Models in List Action: " . $x, LOG_INFO); // TODO remove
+		
 		$this->view->assign('content', $models);
 		$this->view->assign('isCollection', TRUE);
 	}
@@ -346,7 +349,19 @@ class EmberRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 	public function createAction($model, $clientId = NULL) {
 		$this->metaModel->getRepository()->add($model);
 		
+//		$assignee = $model->getAssignee();
+//		$assignee->setTask($model);
+//		$x=\TYPO3\Flow\var_dump($assignee, '', FALSE, TRUE);
+//		$this->systemLogger->log("Assignee in Create Action: " . $x, LOG_INFO); // TODO remove
+//
+//		
+//		$flowModelName = get_class($assignee);
+//		echo $flowModelName;
+//		$metaModel = $this->modelReflectionService->findByFlowModelName($flowModelName);
+//		$metaModel->getRepository()->update($assignee);
+		
 		$this->persistenceManager->persistAll(); 
+		
 		$this->response->setStatus(201);
 		$this->view->assign('content', $model);
 		$this->view->assign('clientId', $clientId);
@@ -360,6 +375,8 @@ class EmberRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 	 */
 	public function updateAction($model) {
 		$this->metaModel->getRepository()->update($model);
+		$this->persistenceManager->persistAll(); 
+		
 		$this->response->setStatus(200);
 		$this->view->assign('content', $model);
 	}
@@ -371,11 +388,13 @@ class EmberRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 	 * @return string
 	 */
 	public function deleteAction($resourceId) {
-		$model = $this->metaModel->getRepository()->findByIdentifier($resourceId);
+		$repository = $this->metaModel->getRepository();
+		$model = $repository->findByIdentifier($resourceId);
 
 		if ($model === NULL) {
 			$this->response->setStatus(404);
 		} else {
+			$repository->remove($model);
 			$this->response->setStatus(204);
 		}
 		return '';

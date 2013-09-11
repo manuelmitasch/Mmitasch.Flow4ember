@@ -1,7 +1,7 @@
 <?php
 namespace Mmitasch\Flow4ember\Controller;
 
-class ExampleController extends EmberRestController {
+class ExampleController extends EpfRestController {
 	
 //	protected $resourceName = "tasks";
 	protected $flowModelName = "Mmitasch\Flow4ember\Domain\Model\Task";

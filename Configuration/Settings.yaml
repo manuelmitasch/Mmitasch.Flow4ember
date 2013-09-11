@@ -2,4 +2,4 @@ TYPO3:
   Flow:
     persistence:
       doctrine:
-        # sqlLogger: TYPO3\Flow\Persistence\Doctrine\Logging\SqlLogger
+        sqlLogger: TYPO3\Flow\Persistence\Doctrine\Logging\SqlLogger

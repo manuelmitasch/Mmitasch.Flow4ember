@@ -68,7 +68,7 @@ class Tasklist {
 	 * @return void
 	 */
 	public function addTask($task) {
-		$task->setList($this);
+//		$task->setList($this);
 		$this->tasks->add($task);
 	}
 

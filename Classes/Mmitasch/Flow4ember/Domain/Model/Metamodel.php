@@ -201,7 +201,7 @@ class Metamodel {
 				}
 				
 					// get ember type of association
-				if ($flowType === 'OneToOne' || $flowType === 'OneToMany') {
+				if ($flowType === 'OneToMany' || $flowType === 'ManyToMany') {
 					$emberType = 'hasMany';
 					$isCollection = TRUE;
 				} else {

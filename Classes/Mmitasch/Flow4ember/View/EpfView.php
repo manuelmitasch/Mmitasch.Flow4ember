@@ -7,11 +7,11 @@ namespace Mmitasch\Flow4ember\View;
  *                                                                        */
 
 use TYPO3\Flow\Annotations as Flow,
-	Mmitasch\Flow4ember\Serializer\EmberSerializer;
+	Mmitasch\Flow4ember\Serializer\EpfSerializer;
 
 /**
  */
-class EmberView extends \TYPO3\Flow\Mvc\View\AbstractView implements EmberViewInterface {
+class EpfView extends \TYPO3\Flow\Mvc\View\AbstractView implements EmberViewInterface {
 
 	/**
 	 * @var \Mmitasch\Flow4ember\Serializer\SerializerInterface

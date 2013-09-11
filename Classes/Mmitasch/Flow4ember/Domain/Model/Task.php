@@ -25,9 +25,15 @@ class Task {
 	
 	/**
 	 * @var \Mmitasch\Flow4ember\Domain\Model\Tasklist
-	 * @ORM\ManyToOne(inversedBy="tasks", cascade={"all"})
+	 * @ORM\ManyToOne(inversedBy="tasks")
 	 */
 	protected $list;
+	
+	/**
+	 * @var \Mmitasch\Flow4ember\Domain\Model\Person
+	 * @ORM\OneToOne
+	 */
+	protected $assignee;
 	
 	/**
 	 * @return string
@@ -60,7 +66,20 @@ class Task {
 		$this->list = $list;
 	}
 
+	/**
+	 * @return \Mmitasch\Flow4ember\Domain\Model\Person
+	 */
+	public function getAssignee() {
+		return $this->assignee;
+	}
 
+	/**
+	 * @param \Mmitasch\Flow4ember\Domain\Model\Person $assignee
+	 */
+	public function setAssignee(\Mmitasch\Flow4ember\Domain\Model\Person $assignee) {
+		$this->assignee = $assignee;
+//		$assignee->setTask($this);
+	}
 	
 }
 ?>

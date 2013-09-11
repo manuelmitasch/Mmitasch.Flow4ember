@@ -12,7 +12,7 @@
   uriPattern: 'rest/{resourceName}'
   defaults:
     '@package': 'Mmitasch.Flow4ember'
-    '@controller': 'EmberRest'
+    '@controller': 'EpfRest'
     '@format': 'json'
   routeParts:
     'resourceName':
@@ -23,7 +23,7 @@
   uriPattern: 'rest/{resourceName}/{resourceId}'
   defaults:
     '@package': 'Mmitasch.Flow4ember'
-    '@controller': 'EmberRest'
+    '@controller': 'EpfRest'
     '@format': 'json'
   routeParts:
     'resourceName':

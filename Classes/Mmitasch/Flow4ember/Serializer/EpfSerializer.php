@@ -14,7 +14,7 @@ use TYPO3\Flow\Annotations as Flow,
 /**
  * Serializer that conforms to Ember Data RESTAdapter conventions
  */
-class EmberSerializer implements SerializerInterface {
+class EpfSerializer implements SerializerInterface {
 
 	
 	/**
@@ -57,6 +57,9 @@ class EmberSerializer implements SerializerInterface {
 	 */
 	public function serialize ($objects, $isCollection, $clientId) {
 		$result = array();
+		if (empty($objects)) {
+			return json_encode((object) $result);
+		}
 		$flowModelName = is_array($objects) ? get_class($objects[0]) : get_class($objects);
 		$metaModel = $this->modelReflectionService->findByFlowModelName($flowModelName);
 		
@@ -89,7 +92,7 @@ class EmberSerializer implements SerializerInterface {
 //			}
 //		}
 		
-		return json_encode((object)$result);
+		return json_encode((object) $result);
 	}
 	
 	
@@ -224,6 +227,8 @@ class EmberSerializer implements SerializerInterface {
 		// Add associations
 		foreach ((array) $metaModel->getAssociations() as $association) {
 			$associationPayloadName = $this->getPayloadName($association->getEmberName(), $association->getEmberType());
+			$this->systemLogger->log("Association: " . $association->getEmberName() . "; PayloadName: " . $associationPayloadName . "; Type: " . $association->getEmberType(), LOG_INFO);
+
 			
 			$this->systemLogger->log("Payload name: " . $associationPayloadName, LOG_INFO); // TODO remove
 
