@@ -93,6 +93,22 @@ class NamingUtility {
 		$tokens = explode('\\', $flowmodelname);
 		return trim(end($tokens));
 	}
+	
+	/**
+	 * @param string $word The word to pluralize
+	 * @return string The pluralized word
+	 */
+	static public function pluralize($word) {
+		return \Mmitasch\Flow4ember\Utility\ShoInflect::pluralize($word);
+	}
+	
+	/**
+	 * @param string $word The word to singularize
+	 * @return string The singularized word
+	 */
+	static public function singularize($word) {
+		return \Mmitasch\Flow4ember\Utility\ShoInflect::singularize($word);
+	}
 
 
 }

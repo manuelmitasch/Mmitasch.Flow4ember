@@ -15,6 +15,19 @@ use TYPO3\Flow\Annotations as Flow,
 class EmberRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 
 	/**
+	 * @var \TYPO3\Flow\Log\SystemLoggerInterface
+	 */
+	protected $systemLogger;
+	
+	/**
+	 * @param \TYPO3\Flow\Log\SystemLoggerInterface $systemLogger
+	 * @return void
+	 */
+	public function injectSystemLogger(\TYPO3\Flow\Log\SystemLoggerInterface $systemLogger) {
+		$this->systemLogger = $systemLogger;
+	}
+	
+	/**
 	 * Resource name
 	 * If set, will be used to retrieve according Metamodel.
 	 * If not set will be retrieved from arguments (route part).
@@ -94,7 +107,7 @@ class EmberRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 			switch ($this->request->getHttpRequest()->getMethod()) {
 				case 'HEAD':
 				case 'GET' :
-					$actionName = ($this->request->hasArgument('resource')) ? 'show' : 'list';
+					$actionName = ($this->request->hasArgument('resourceId')) ? 'show' : 'list';
 				break;
 				case 'POST' :
 					$actionName = 'create';
@@ -157,13 +170,20 @@ class EmberRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 		}
 		
 		$arguments = $this->request->getArguments();
+		
+		if (array_key_exists('resourceId', $arguments) && $this->actionMethodName !== 'deleteAction') {
+			$resourceName = $this->metaModel->getResourceNameSingular();
 
-		if (array_key_exists('resourceId', $arguments)) {
+			if (array_key_exists('id', $arguments[$resourceName]) && $this->request->getArgument('resourceId') !== $arguments[$resourceName]['id']) {
+				$this->throwStatus(400, NULL, 'ResourceId in URL (' . $this->request->getArgument('resourceId') . ') is not the same as given in json hash (' . $arguments[$resourceName]['id'] . ').');
+			}
+			
 				// set model id in request argument
 			$arguments['model'] = array('__identity' => $this->request->getArgument('resourceId'));
 				// set data type for model argument
 			$this->arguments->addNewArgument('model', $this->metaModel->getFlowModelName(), TRUE); 
 		}
+		
 		unset($arguments['resourceName']);
 		$this->request->setArguments($arguments);
 	}
@@ -179,14 +199,32 @@ class EmberRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 		$this->arguments->addNewArgument('model', $this->metaModel->getFlowModelName(), TRUE);
 		
 		$propertyMappingConfiguration = $this->arguments['model']->getPropertyMappingConfiguration();
-		$propertyMappingConfiguration->setTypeConverterOption('TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter', \TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter::CONFIGURATION_CREATION_ALLOWED, TRUE);
+		$propertyMappingConfiguration->setTypeConverterOption(
+				'TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter',
+				\TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter::CONFIGURATION_CREATION_ALLOWED, TRUE);
 		$propertyMappingConfiguration->allowAllProperties();
+		
+		foreach ((array) $this->metaModel->getAssociations() as $association) {
+			$propertyMappingConfiguration->forProperty($association->getFlowName())->setTypeConverterOption(
+					'TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter',
+					\TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter::CONFIGURATION_CREATION_ALLOWED, TRUE);
+			if ($association->getEmberType() !== 'belongsTo') {
+				$propertyMappingConfiguration->forProperty($association->getFlowName() . '.*')->setTypeConverterOption(
+					'TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter',
+					\TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter::CONFIGURATION_CREATION_ALLOWED, TRUE);			
+			}
+		}
 		
 		$arguments = $this->request->getArguments();
 		$resourceName = $this->metaModel->getResourceNameSingular();
 		
 		if (array_key_exists($resourceName, $arguments)) {
 			$arguments['model'] = $this->serializer->deserialize($arguments[$resourceName], $this->metaModel);
+			
+			if (array_key_exists('client_id', $arguments[$resourceName])) {
+				$arguments['clientId'] = $arguments[$resourceName]['client_id'];
+			}
+			
 			$this->request->setArguments($arguments);
 		} else {
 			$this->throwStatus(400, NULL, 'No resource found with correct resource hash. Expected: {\'' . $resourceName . '\': {}}');
@@ -203,18 +241,33 @@ class EmberRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 		$this->arguments->addNewArgument('model', $this->metaModel->getFlowModelName(), TRUE);
 		
 		$propertyMappingConfiguration = $this->arguments['model']->getPropertyMappingConfiguration();
-		$propertyMappingConfiguration->setTypeConverterOption('TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter', \TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter::CONFIGURATION_MODIFICATION_ALLOWED, TRUE);
+		$propertyMappingConfiguration->setTypeConverterOption(
+				'TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter', 
+				\TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter::CONFIGURATION_MODIFICATION_ALLOWED, TRUE);
 		$propertyMappingConfiguration->allowAllProperties();
+		
+		foreach ((array) $this->metaModel->getAssociations() as $association) {
+			$propertyMappingConfiguration->forProperty($association->getFlowName())->setTypeConverterOption(
+					'TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter',
+					\TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter::CONFIGURATION_MODIFICATION_ALLOWED, TRUE);	
+			if ($association->getEmberType() !== 'belongsTo') {
+				$propertyMappingConfiguration->forProperty($association->getFlowName() . '.*')->setTypeConverterOption(
+					'TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter',
+					\TYPO3\Flow\Property\TypeConverter\PersistentObjectConverter::CONFIGURATION_MODIFICATION_ALLOWED, TRUE);			
+			}
+		}
 		
 		$arguments = $this->request->getArguments();
 		$resourceName = $this->metaModel->getResourceNameSingular();
 		
 		if (array_key_exists($resourceName, $arguments)) {
 			if (array_key_exists('model', $arguments)) {
-				$arguments['model'] = array_merge((array)$arguments['model'],(array)$this->serializer->deserialize($arguments[$resourceName], $this->metaModel));
+				$arguments['model'] = array_merge((array)$arguments['model'], (array)$this->serializer->deserialize($arguments[$resourceName], $this->metaModel));
 			} else {
 				$arguments['model'] = $this->serializer->deserialize($arguments[$resourceName], $this->metaModel);
-			}			$this->request->setArguments($arguments);
+			}			
+			
+			$this->request->setArguments($arguments);
 		} else {
 			$this->throwStatus(400, NULL, 'No resource found with correct resource hash. Expected: {\'' . $resourceName . '\': {}}');
 		}
@@ -287,13 +340,16 @@ class EmberRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 	 * Create a model
 	 *
 	 * @param object $model The new model to add
+	 * @param string $clientId The clientId passed from ember persistance layer
 	 * @return void
 	 */
-	public function createAction($model) {
+	public function createAction($model, $clientId = NULL) {
 		$this->metaModel->getRepository()->add($model);
-		$this->persistenceManager->persistAll();
+		
+		$this->persistenceManager->persistAll(); 
 		$this->response->setStatus(201);
 		$this->view->assign('content', $model);
+		$this->view->assign('clientId', $clientId);
 	}
 
 	/**
@@ -304,19 +360,24 @@ class EmberRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 	 */
 	public function updateAction($model) {
 		$this->metaModel->getRepository()->update($model);
-		$this->response->setStatus(204);
+		$this->response->setStatus(200);
 		$this->view->assign('content', $model);
 	}
 
 	/**
 	 * Removes the given model
 	 *
-	 * @param string $model The model to delete
+	 * @param string $resourceId The resourceId 
 	 * @return string
 	 */
-	public function deleteAction($model) {
-		$this->metaModel->getRepository()->remove($model);
-		$this->response->setStatus(204);
+	public function deleteAction($resourceId) {
+		$model = $this->metaModel->getRepository()->findByIdentifier($resourceId);
+
+		if ($model === NULL) {
+			$this->response->setStatus(404);
+		} else {
+			$this->response->setStatus(204);
+		}
 		return '';
 	}
 	

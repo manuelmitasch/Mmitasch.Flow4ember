@@ -45,7 +45,7 @@ class Metamodel {
 		// TODO check Ember.yaml for custom resource name
 		$resourceAnnotation = $reflectionService->getClassAnnotation($flowModelName, '\Mmitasch\Flow4ember\Annotations\Resource');
 		$this->resourceName = $resourceAnnotation->getName();
-		$this->resourceName = ($this->resourceName === NULL) ? strtolower($this->modelName) . "s" : $this->resourceName;
+		$this->resourceName = ($this->resourceName === NULL) ? NamingUtility::pluralize($this->resourceNameSingular) : $this->resourceName;
 		
 		// set repository if exists
 		$repositoryName = str_replace(array('\\Model\\'), array('\\Repository\\'), $this->flowName) . 'Repository';

@@ -1,6 +1,6 @@
 App.Tasklist = DS.Model.extend({
 	name: DS.attr('string'),
-	tasks: DS.hasMany('App.Task')
+	tasks: DS.hasMany('App.Task', { inverse: 'list' })
 });
 
 App.Task = DS.Model.extend({
@@ -19,8 +19,15 @@ Ember.run.once(this, function() {
 	// list.set('name', 'other name');
 	// list.save();
 
-
-	var list = App.Tasklist.createRecord({ name: "Peter", tasks: []});
-	list.save();
+//	var transaction = App.Store.transaction();
+//	var list = transaction.createRecord(App.Tasklist, { name: "Peter" });
+//	var task1 = list.get('tasks').createRecord(App.Task, { name: 'task A' });
+//	transaction.commit();
+	
+//	task1.set('list', list);
+//	task2.set('list', list);
+//	list.save();
+//	task1.save();
+	
 });
 

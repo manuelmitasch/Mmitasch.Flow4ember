@@ -1,5 +1,5 @@
-// Version: v1.0.0-rc.6.1
-// Last commit: 2a9ce26 (2013-07-25 18:13:33 -0400)
+// Version: v1.0.0-rc.6-1-g42f0c68
+// Last commit: 42f0c68 (2013-06-23 15:43:35 -0400)
 
 
 (function() {
@@ -156,8 +156,8 @@ Ember.deprecateFunc = function(message, func) {
 
 })();
 
-// Version: v1.0.0-rc.6-2-gaa6f429
-// Last commit: aa6f429 (2013-07-25 20:20:00 -0400)
+// Version: v1.0.0-rc.6-1-g42f0c68
+// Last commit: 42f0c68 (2013-06-23 15:43:35 -0400)
 
 
 (function() {
@@ -14215,45 +14215,6 @@ ClassSet.prototype = {
   }
 };
 
-var BAD_TAG_NAME_TEST_REGEXP = /[^a-zA-Z\-]/;
-var BAD_TAG_NAME_REPLACE_REGEXP = /[^a-zA-Z\-]/g;
-
-function stripTagName(tagName) {
-  if (!tagName) {
-    return tagName;
-  }
-
-  if (!BAD_TAG_NAME_TEST_REGEXP.test(tagName)) {
-    return tagName;
-  }
-
-  return tagName.replace(BAD_TAG_NAME_REPLACE_REGEXP, '');
-}
-
-var BAD_CHARS_REGEXP = /&(?!\w+;)|[<>"'`]/g;
-var POSSIBLE_CHARS_REGEXP = /[&<>"'`]/;
-
-function escapeAttribute(value) {
-  // Stolen shamelessly from Handlebars
-
-  var escape = {
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#x27;",
-    "`": "&#x60;"
-  };
-
-  var escapeChar = function(chr) {
-    return escape[chr] || "&amp;";
-  };
-
-  var string = value.toString();
-
-  if(!POSSIBLE_CHARS_REGEXP.test(string)) { return string; }
-  return string.replace(BAD_CHARS_REGEXP, escapeChar);
-}
-
 /**
   `Ember.RenderBuffer` gathers information regarding the a view and generates the
   final representation. `Ember.RenderBuffer` will generate HTML which can be pushed
@@ -14541,14 +14502,14 @@ Ember._RenderBuffer.prototype =
         style = this.elementStyle,
         attr, prop;
 
-    buffer += '<' + stripTagName(tagName);
+    buffer += '<' + tagName;
 
     if (id) {
-      buffer += ' id="' + escapeAttribute(id) + '"';
+      buffer += ' id="' + this._escapeAttribute(id) + '"';
       this.elementId = null;
     }
     if (classes) {
-      buffer += ' class="' + escapeAttribute(classes.join(' ')) + '"';
+      buffer += ' class="' + this._escapeAttribute(classes.join(' ')) + '"';
       this.classes = null;
     }
 
@@ -14557,7 +14518,7 @@ Ember._RenderBuffer.prototype =
 
       for (prop in style) {
         if (style.hasOwnProperty(prop)) {
-          buffer += prop + ':' + escapeAttribute(style[prop]) + ';';
+          buffer += prop + ':' + this._escapeAttribute(style[prop]) + ';';
         }
       }
 
@@ -14569,7 +14530,7 @@ Ember._RenderBuffer.prototype =
     if (attrs) {
       for (attr in attrs) {
         if (attrs.hasOwnProperty(attr)) {
-          buffer += ' ' + attr + '="' + escapeAttribute(attrs[attr]) + '"';
+          buffer += ' ' + attr + '="' + this._escapeAttribute(attrs[attr]) + '"';
         }
       }
 
@@ -14584,7 +14545,7 @@ Ember._RenderBuffer.prototype =
             if (value === true) {
               buffer += ' ' + prop + '="' + prop + '"';
             } else {
-              buffer += ' ' + prop + '="' + escapeAttribute(props[prop]) + '"';
+              buffer += ' ' + prop + '="' + this._escapeAttribute(props[prop]) + '"';
             }
           }
         }
@@ -14599,7 +14560,7 @@ Ember._RenderBuffer.prototype =
 
   pushClosingTag: function() {
     var tagName = this.tagNames.pop();
-    if (tagName) { this.buffer += '</' + stripTagName(tagName) + '>'; }
+    if (tagName) { this.buffer += '</' + tagName + '>'; }
   },
 
   currentTagName: function() {
@@ -14697,7 +14658,32 @@ Ember._RenderBuffer.prototype =
 
   innerString: function() {
     return this.buffer;
+  },
+
+  _escapeAttribute: function(value) {
+    // Stolen shamelessly from Handlebars
+
+    var escape = {
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#x27;",
+      "`": "&#x60;"
+    };
+
+    var badChars = /&(?!\w+;)|[<>"'`]/g;
+    var possible = /[&<>"'`]/;
+
+    var escapeChar = function(chr) {
+      return escape[chr] || "&amp;";
+    };
+
+    var string = value.toString();
+
+    if(!possible.test(string)) { return string; }
+    return string.replace(badChars, escapeChar);
   }
+
 };
 
 })();

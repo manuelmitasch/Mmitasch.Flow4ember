@@ -18,6 +18,10 @@ use Doctrine\ORM\Mapping as ORM,
  */
 class Tasklist {
 
+	 public function __construct() {
+        $this->tasks = new \Doctrine\Common\Collections\ArrayCollection();
+    }
+	
 	/**
 	 * @var string
 	 */
@@ -25,7 +29,7 @@ class Tasklist {
 
 	/**
 	 * @var \Doctrine\Common\Collections\Collection<\Mmitasch\Flow4ember\Domain\Model\Task>
-	 * @ORM\OneToMany(mappedBy="list")
+	 * @ORM\OneToMany(mappedBy="list", cascade={"all"})
 	 */
 	protected $tasks;
 
@@ -51,12 +55,20 @@ class Tasklist {
 	public function getTasks() {
 		return $this->tasks;
 	}
+	
+	/**
+	 * @param \Doctrine\Common\Collections\Collection<\Mmitasch\Flow4ember\Domain\Model\Task> $tasks
+	 */
+	public function setTasks($tasks) {
+		$this->tasks = $tasks;
+	}
 
 	/**
 	 * @param \Mmitasch\Flow4ember\Domain\Model\Task $task
 	 * @return void
 	 */
 	public function addTask($task) {
+		$task->setList($this);
 		$this->tasks->add($task);
 	}
 

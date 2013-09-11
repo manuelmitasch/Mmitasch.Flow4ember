@@ -16,9 +16,10 @@ interface SerializerInterface {
 	 * 
 	 * @param mixed $objects
 	 * @param boolean $isCollection
+	 * @param string $clientId
 	 * @return type
 	 */
-	public function serialize ($objects, $isCollection);
+	public function serialize ($objects, $isCollection, $clientId);
 	
 	/**
 	 * Deserialize string to array with properties that will be used by the datamapper for the creation of models

@@ -16,6 +16,20 @@ use TYPO3\Flow\Annotations as Flow,
  */
 class EmberSerializer implements SerializerInterface {
 
+	
+	/**
+	 * @var \TYPO3\Flow\Log\SystemLoggerInterface
+	 */
+	protected $systemLogger;
+	
+	/**
+	 * @param \TYPO3\Flow\Log\SystemLoggerInterface $systemLogger
+	 * @return void
+	 */
+	public function injectSystemLogger(\TYPO3\Flow\Log\SystemLoggerInterface $systemLogger) {
+		$this->systemLogger = $systemLogger;
+	}
+	
 	/**
 	 * @Flow\Inject
 	 * @var \Mmitasch\Flow4ember\Service\ModelReflectionService
@@ -38,9 +52,10 @@ class EmberSerializer implements SerializerInterface {
 	 * 
 	 * @param mixed $objects Passed objects (can be array of objects or single object)
 	 * @param boolean $isCollection
+	 * @param string $clientId
 	 * @return type
 	 */
-	public function serialize ($objects, $isCollection) {
+	public function serialize ($objects, $isCollection, $clientId) {
 		$result = array();
 		$flowModelName = is_array($objects) ? get_class($objects[0]) : get_class($objects);
 		$metaModel = $this->modelReflectionService->findByFlowModelName($flowModelName);
@@ -51,6 +66,10 @@ class EmberSerializer implements SerializerInterface {
 		} else {
 			$resourceNameSingular = $metaModel->getResourceNameSingular();
 			$result[$resourceNameSingular] = $this->serializeObject($objects, $metaModel);
+			
+			if (isset($clientId)) {
+				$result[$resourceNameSingular]['client_id'] = $clientId;
+			}
 		}
 		
 //		if (!empty($this->sideloadObjects)) {
@@ -119,28 +138,13 @@ class EmberSerializer implements SerializerInterface {
 		
 			// add associations
 		foreach ((array) $metaModel->getAssociations() as $association) {
-			$getterName = 'get' . ucfirst($association->getEmberName());
+			$getterName = 'get' . ucfirst($association->getFlowName());
 			$associatedObjects = $object->$getterName();
 			
 				// only include in result if contains an object
 			if (isset($associatedObjects) && !empty($associatedObjects)) {
 					// define name of association property
-				if ($association->getIsCollection()) {
-					if ($association->getEmbedded() === "always" || $association->getEmbedded() === "load") {
-						$name = $this->getPayloadName($association->getEmberName()); // case: hasMany + embed association
-					} elseif ($association->getSideload()) {
-						$modelName = $this->modelReflectionService->findByFlowModelName($association->getFlowModelName())->getModelName();
-						$name = $this->getPayloadName($modelName) . '_ids'; // case: hasMany + sideload association
-						// TODO: check why ember uses this crazy naming convention, seems wrong (how to properly get from eg. tasks to task_ids)
-					} else {
-						$modelName = $this->modelReflectionService->findByFlowModelName($association->getFlowModelName())->getModelName();
-						$name = $this->getPayloadName($modelName) . '_ids'; // case: hasMany (array of ids)
-						// TODO: check why ember uses this crazy naming convention, seems wrong (how to properly get from eg. tasks to task_ids)
-					}
-				} else {
-					$name = $this->getPayloadName($association->getEmberName()) . '_id'; // case: belongsTo
-				}
-				
+				$name = $this->getPayloadName($association->getEmberName(), $association->getEmberType()); 
 				$result[$name] = $this->serializeAssociation($associatedObjects, $association); 
 			}
 		}
@@ -201,36 +205,72 @@ class EmberSerializer implements SerializerInterface {
 	 */
 	public function deserialize ($data, $metaModel) {
 		$result = array();
-//		$data = json_decode($data, TRUE);
-//		var_dump($data);
-//		var_dump(json_decode($data, TRUE)); die();
-		
+			$this->systemLogger->log("Data: " . print_r($data, TRUE), LOG_INFO); // TODO remove
+
 		if (array_key_exists('id', $data)) {
 			$result['__identity'] = $data['id'];
 		}
 		
+		// Add properties
 		foreach ((array) $metaModel->getProperties() as $property) {
 			$propertyPayloadName = $this->getPayloadName($property->getName());
+
 			if (array_key_exists($propertyPayloadName, $data)) {
 					// TODO: use typconverter function
 				$result[$property->getName()] = $data[$propertyPayloadName];
 			}
 		}
 		
-		//TODO: Important!! Add associations.
-		foreach ((array) $metaModel->getAssociations() as $associations) {
+		// Add associations
+		foreach ((array) $metaModel->getAssociations() as $association) {
+			$associationPayloadName = $this->getPayloadName($association->getEmberName(), $association->getEmberType());
 			
+			$this->systemLogger->log("Payload name: " . $associationPayloadName, LOG_INFO); // TODO remove
+
+			if(array_key_exists($associationPayloadName, $data)) {
+				$result[$association->getFlowName()] = $data[$associationPayloadName];
+			}
 		}
+
+		// TODO remove Logging
+		ob_start();
+		var_dump($result);
+		$x = ob_get_clean();
+		$this->systemLogger->log("Result: " .$x, LOG_INFO);
+
 		
 		return $result;
 	}
 	
 	
-	private function getPayloadName ($name) {
+	/**
+	 * Get payloadname for properties and associations based on ember name.
+	 *
+	 * Example 1 (Property):
+	 *   Given: "homeAddress"
+	 *   Returned: "home_address"
+	 * 
+	 * Example 2 (Association, belongsTo): 
+	 *   Given: "homeAddress", "belongsTo"
+	 *	 Returned: "home_address_id"
+	 * 
+	 * Example 2 (Association, hasMany):
+	 *   Given: "phoneNumbers", "hasMany"
+	 *   Returned: "phone_number_ids"
+	 * 
+	 * @param string $name
+	 * @param string $type
+	 * @return string
+	 */
+	private function getPayloadName ($name, $type='') {
+		if ($type === 'belongsTo') {
+			return NamingUtility::decamelize($name) . '_id';
+		} elseif ($type === 'hasMany') {
+			return NamingUtility::singularize(NamingUtility::decamelize($name)) . '_ids';
+		}
 		return NamingUtility::decamelize($name);
 	}
 	
-
 }
 
 ?>

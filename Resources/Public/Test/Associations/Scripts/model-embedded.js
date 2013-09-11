@@ -8,6 +8,6 @@ App.Task = DS.Model.extend({
 	list: DS.belongsTo('App.Tasklist')
 });
 
-DS.RESTAdapter.map('App.Tasklist', {
-  tasks: { embedded: 'always' }
+App.Adapter.map('App.Tasklist', {
+  tasks: {embedded: 'always'}
 });

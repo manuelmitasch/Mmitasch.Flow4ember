@@ -25,7 +25,7 @@ class Task {
 	
 	/**
 	 * @var \Mmitasch\Flow4ember\Domain\Model\Tasklist
-	 * @ORM\ManyToOne(inversedBy="tasks")
+	 * @ORM\ManyToOne(inversedBy="tasks", cascade={"all"})
 	 */
 	protected $list;
 	

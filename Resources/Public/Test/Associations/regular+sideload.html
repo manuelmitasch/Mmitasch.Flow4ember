@@ -12,9 +12,10 @@
     {{outlet}}
   </script>
 
-  <script type="text/x-handlebars" data-template-name="index">
+  <script type="text/x-handlebars" data-template-name="tasklists">
+	<button {{action "createTasklist"}} class="destroy">Create new tasklist + task</button>
     <ul>
-    {{#each tasklist in model}}
+    {{#each tasklist in controller}}
       <li>
         {{tasklist.name }}: {{tasklist.id}}
         <ul>
@@ -29,8 +30,8 @@
 
   <script src="Scripts/Library/jquery-1.9.1.js"></script>
   <script src="Scripts/Library/handlebars-1.0.0-rc.4.js"></script>
-  <script src="Scripts/Library/ember-1.0.0-rc.6.1.js"></script>
-  <script src="Scripts/Library/ember-data-0bd862cc0c3a8da036e82329c0b82c6e60c11299.js"></script>
+  <script src="Scripts/Library/ember.js"></script>
+  <script src="Scripts/Library/ember-data.js"></script>
   <script src="Scripts/app.js"></script>
   <script src="Scripts/model-regular-and-sideload.js"></script>
 
