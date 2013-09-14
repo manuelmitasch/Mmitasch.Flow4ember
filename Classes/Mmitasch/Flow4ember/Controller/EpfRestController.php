@@ -174,7 +174,9 @@ class EpfRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 		if (array_key_exists('resourceId', $arguments) && $this->actionMethodName !== 'deleteAction') {
 			$resourceName = $this->metaModel->getResourceNameSingular();
 
-			if (array_key_exists('id', $arguments[$resourceName]) && $this->request->getArgument('resourceId') !== $arguments[$resourceName]['id']) {
+			if ($this->actionMethodName === 'updateAction' 
+					&& array_key_exists('id', $arguments[$resourceName]) 
+					&& $this->request->getArgument('resourceId') !== $arguments[$resourceName]['id']) {
 				$this->throwStatus(400, NULL, 'ResourceId in URL (' . $this->request->getArgument('resourceId') . ') is not the same as given in json hash (' . $arguments[$resourceName]['id'] . ').');
 			}
 			
