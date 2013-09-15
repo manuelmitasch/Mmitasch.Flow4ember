@@ -22,10 +22,17 @@ class ModelReflectionService {
 	protected $metaModels;
 	
 	/**
-	 * @Flow\Inject
-	 * @var \TYPO3\Flow\Object\ObjectManagerInterface
+	 * config from Ember.yaml
+	 * 
+	 * @var array
 	 */
-	protected $objectManager;
+	protected $config;
+	
+	/**
+	 * @Flow\Inject
+	 * @var TYPO3\Flow\Configuration\ConfigurationManager
+	 */
+	protected $configurationManager;
 	
 	/**
 	 * @Flow\Inject
@@ -41,10 +48,15 @@ class ModelReflectionService {
 	 * @return void
 	 */
 	public function initializeObject() {
+		$this->config = $this->configurationManager->getConfiguration('Ember');
 		$models = $this->reflectionService->getClassNamesByAnnotation('\Mmitasch\Flow4ember\Annotations\Resource');
 		
-		foreach ($models as $modelname) {
-			$this->metaModels[$modelname] = new Metamodel($modelname);	
+		foreach ($models as $modelName) {
+			if (array_key_exists($modelName, $this->config['models'])) {
+				$this->metaModels[$modelName] = new Metamodel($modelName, $this->config);
+			} else {
+				$this->metaModels[$modelName] = new Metamodel($modelName);	
+			}
 		}
 		
 //		$this->dumpModels(); // TODO: remove

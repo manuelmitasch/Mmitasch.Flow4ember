@@ -28,24 +28,50 @@ class Metamodel {
 	protected $converterService;
 	
 	/**
+	 * Configuration from Ember.yaml for this model
+	 * 
+	 * @var array
+	 */
+	protected $config;
+	
+	/**
 	 * 
 	 * @param string $flowModelName
+	 * @param array $config Configuration from Ember.yaml
 	 * @param \TYPO3\Flow\Reflection\ReflectionService $reflectionService
 	 * @param \TYPO3\Flow\Object\ObjectManagerInterface $objectManager
 	 */
-	public function __construct($flowModelName, \TYPO3\Flow\Reflection\ReflectionService $reflectionService, \Mmitasch\Flow4ember\Service\ConverterService $converterService, \TYPO3\Flow\Object\ObjectManagerInterface $objectManager) {
+	public function __construct($flowModelName, $config, \TYPO3\Flow\Reflection\ReflectionService $reflectionService, \Mmitasch\Flow4ember\Service\ConverterService $converterService, \TYPO3\Flow\Object\ObjectManagerInterface $objectManager) {
+		$this->config = $this->extractConfig($config, $flowModelName);	
+		$emberNamespace = $this->extractEmberNamespace($config);
+		unset($config); // unset to avoid confusion between $config and $this->config
 		$this->reflectionService = $reflectionService;
 		$this->converterService = $converterService;
 		
 		$this->flowName = $flowModelName;
 		$this->modelName = NamingUtility::extractMetamodelname($flowModelName);
 		$this->resourceNameSingular = strtolower($this->modelName);
+		$this->emberName = $emberNamespace . '.' . $this->flowName;
 
 		// set resource name
-		// TODO check Ember.yaml for custom resource name
 		$resourceAnnotation = $reflectionService->getClassAnnotation($flowModelName, '\Mmitasch\Flow4ember\Annotations\Resource');
 		$this->resourceName = $resourceAnnotation->getName();
-		$this->resourceName = ($this->resourceName === NULL) ? NamingUtility::pluralize($this->resourceNameSingular) : $this->resourceName;
+		
+		if (array_key_exists('resourceName', $this->config)) {
+			$this->resourceName = $this->config['resourceName']; // set from Ember.yaml
+		} else {
+			$this->resourceName = ($this->resourceName === NULL) ? NamingUtility::pluralize($this->resourceNameSingular) : $this->resourceName;
+		}
+		
+		// set isResource
+		if (array_key_exists('resource', $this->config)) {
+			if ($this->config['resource'] === 'no') {
+				$this->isResource = false;
+				$this->resourceName = '';
+			} else {
+				$this->isResource = true;
+			}
+		}
 		
 		// set repository if exists
 		$repositoryName = str_replace(array('\\Model\\'), array('\\Repository\\'), $this->flowName) . 'Repository';
@@ -59,6 +85,7 @@ class Metamodel {
 
 	/**
 	 * meta model name; derived from $flowModelName
+	 * 
 	 * @var string
 	 */
 	public $modelName;
@@ -72,9 +99,19 @@ class Metamodel {
 	/**
 	 * ember model name.
 	 * either derived from modelName or configured through annotation or Ember.yaml.
+	 * 
 	 * @var string
 	 */
 	protected $emberName;
+	
+	/**
+	 * is model also a resource or just a model
+	 * for resouces a REST endpoint is provided.
+	 * models can only be used as embedded models in ember.
+	 *  
+	 * @var boolean
+	 */
+	protected $isResource;
 
 	/**
 	 * meta resource name
@@ -162,8 +199,22 @@ class Metamodel {
 	public function getAssociations() {
 		return $this->associations;
 	}
-
 	
+	/**
+	 * @return boolean
+	 */
+	public function getIsResource() {
+		return $this->isResource;
+	}	
+	
+	/**
+	 * @param boolean $isResource
+	 */
+	public function setIsResource($isResource) {
+		$this->isResource = $isResource;
+	}
+
+		
 	/**
 	 * Init the model properties and associations
 	 */
@@ -209,19 +260,35 @@ class Metamodel {
 					$isCollection = FALSE;
 				}
 				
-				// TODO: check Ember.yaml if association should be sideloaded
-				$sideload = (array_key_exists('Mmitasch\Flow4ember\Annotations\Sideload', $annotations));
+				// Sideload?
+					// check annotation
+				$sideload = (array_key_exists('Mmitasch\Flow4ember\Annotations\Sideload', $annotations)); 
+					// check Ember.yaml config
+				if (isset($this->config['associations'][$propertyName]['sideload'])
+						&& $this->config['associations'][$propertyName]['sideload'] === 'yes') {
+					$sideload = true;
+				}
 				
-				// TODO: check Ember.yaml if association models should be embedded
+				// Embedded?
 				$embedded = NULL;
+					// check annotations
 				if (array_key_exists('Mmitasch\Flow4ember\Annotations\Embedded', $annotations)) {
 					$embedded = $annotations['Mmitasch\Flow4ember\Annotations\Embedded'][0]->getType(); 
 				} 
+					// check Ember.yaml config
+				if (isset($this->config['associations'][$propertyName]['embeeded'])) {
+					if ($this->config['associations'][$propertyName]['embedded'] === 'always') {
+						$embedded = 'always';
+					} elseif ($this->config['associations'][$propertyName]['embedded'] === 'load') {
+						$embedded = 'load';
+					}
+				}  
 				
 					// add association
 				$this->associations[$propertyName] = new Association($propertyName, $propertyName, $flowModelName, $flowType, $emberType, $sideload, $embedded, $isCollection);
 				
 			} else {
+				// TODO check Ember.yaml for custom TypeConverter
 				$converter = $this->converterService->getTypeConverter($flowType['type'], $emberType);
 				$this->properties[$propertyName] = new Property($propertyName, $converter);
 			}
@@ -247,7 +314,40 @@ class Metamodel {
 
 		return FALSE;
 	}
-
+	
+	
+	/**
+	 * Extract model config from Ember.yaml config
+	 * 
+	 * @param array $config
+	 * @param string $flowName
+	 * @return array
+	 */
+	protected function extractConfig ($config, $flowName) {
+		$extractedConfig = array();
+		
+		if ($config !== NULL && array_key_exists('models', $config)
+				&& array_key_exists($flowName, $config['models'])) {
+			$extractedConfig = $config['models'][$flowName];			
+		}
+		
+		return $extractedConfig;
+	}
+	
+	/**
+	 * Extract the embername space from Ember.yaml config
+	 * or set to standard "App"
+	 * 
+	 * @param array $config
+	 * @return string
+	 */
+	protected function extractEmberNamespace ($config) {
+		if ($config !== NULL && array_key_exists('emberNamespace', $config)) {
+			return $config['emberNamespace'];
+		}
+		return 'App';
+	}
+	
 }
 
 ?>
