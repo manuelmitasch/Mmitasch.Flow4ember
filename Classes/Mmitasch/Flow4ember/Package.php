@@ -11,11 +11,11 @@ namespace Mmitasch\Flow4ember;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-use TYPO3\Flow\Package\Package as BasePackage;
+use TYPO3\Flow\Package\Package as BasePackage,
+	TYPO3\Flow\Annotations as Flow;
 
 /**
  * The Kickstart Package
- *
  */
 class Package extends BasePackage {
 
@@ -36,7 +36,15 @@ class Package extends BasePackage {
 //		$monitor = new \TYPO3\Flow\Monitor\FileMonitor('Handlebars Templates');
 //		$monitor->monitorDirectory(__DIR__);
 //		
-//		$dispatcher = $bootstrap->getSignalSlotDispatcher();
+		$dispatcher = $bootstrap->getSignalSlotDispatcher();
+		$dispatcher->connect('TYPO3\Flow\Configuration\ConfigurationManager', 'configurationManagerReady',
+        function ($configurationManager) {
+                $configurationManager->registerConfigurationType('Ember');
+        }
+);
+		
+		
+		
 //        $dispatcher->connect(
 //                'TYPO3\Flow\Monitor\FileMonitor', 'directoriesHaveChanged',
 //                'Mmitasch\Flow4ember\Service\Notification', 'receiveDirectoriesHaveChanged'

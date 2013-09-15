@@ -1,0 +1,32 @@
+# Ember.yaml 
+# Configuration for Flow4ember Package
+
+emberNamespace: App	# not needed because default
+restNamespace: rest/ # not needed because default
+restController: Mmitasch\Blog\Controller\EmberRestController
+modelReflectionService: Mmitasch\Blog\Service\ModelReflectionService 
+persistenceLibrary: EPF  # not needed because default
+
+typeConverters: 
+    - Mmitasch\Blog\Converter\CustomDateConverter
+
+defaults:
+    generate: [model, view]  # only model and view will be generated
+    mergeStrategy:
+        default: merge  # not need because default
+        model: merge
+        view: merge
+        template: keep
+        controller: keep
+        route: override
+        html: keep
+        flowRoutes: keep
+        flowAppController: keep
+
+models:
+    Mmitasch\Flow4ember\Domain\Model\Tasklist:
+        resourceName: tasklist # not needed because default
+        associations: 
+            tasks: 
+                sideload: yes
+
