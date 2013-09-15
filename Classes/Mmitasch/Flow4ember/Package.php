@@ -20,6 +20,12 @@ use TYPO3\Flow\Package\Package as BasePackage;
 class Package extends BasePackage {
 
 	/**
+	 * @Flow\Inject
+	 * @var \TYPO3\Flow\Object\ObjectManagerInterface
+	 */
+	protected $objectManager;
+	
+	/**
 	 * Invokes custom PHP code directly after the package manager has been initialized.
 	 *
 	 * @param \TYPO3\Flow\Core\Bootstrap $bootstrap The current bootstrap
@@ -29,18 +35,12 @@ class Package extends BasePackage {
 		
 //		$monitor = new \TYPO3\Flow\Monitor\FileMonitor('Handlebars Templates');
 //		$monitor->monitorDirectory(__DIR__);
-		
-//		$dispatcher = $bootstrap->getSignalSlotDispatcher();
-////        $dispatcher->connect(
-////                'TYPO3\Flow\Monitor\FileMonitor', 'directoriesHaveChanged',
-////                'Mmitasch\Flow4ember\Service\Notification', 'receiveDirectoriesHaveChanged'
-////        );
 //		
+//		$dispatcher = $bootstrap->getSignalSlotDispatcher();
 //        $dispatcher->connect(
-//                'TYPO3\Flow\Monitor\FileMonitor', 'filesHaveChanged',
-//                'Mmitasch\Flow4ember\Service\Notification', 'receiveFilesHaveChanged'
+//                'TYPO3\Flow\Monitor\FileMonitor', 'directoriesHaveChanged',
+//                'Mmitasch\Flow4ember\Service\Notification', 'receiveDirectoriesHaveChanged'
 //        );
-		
 
 	}
 
