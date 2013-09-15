@@ -26,7 +26,22 @@ class Package extends BasePackage {
 	 * @return void
 	 */
 	public function boot(\TYPO3\Flow\Core\Bootstrap $bootstrap) {
-//		require_once(__DIR__ . '/Utility/Sho_Inflect.php');
+		
+//		$monitor = new \TYPO3\Flow\Monitor\FileMonitor('Handlebars Templates');
+//		$monitor->monitorDirectory(__DIR__);
+		
+//		$dispatcher = $bootstrap->getSignalSlotDispatcher();
+////        $dispatcher->connect(
+////                'TYPO3\Flow\Monitor\FileMonitor', 'directoriesHaveChanged',
+////                'Mmitasch\Flow4ember\Service\Notification', 'receiveDirectoriesHaveChanged'
+////        );
+//		
+//        $dispatcher->connect(
+//                'TYPO3\Flow\Monitor\FileMonitor', 'filesHaveChanged',
+//                'Mmitasch\Flow4ember\Service\Notification', 'receiveFilesHaveChanged'
+//        );
+		
+
 	}
 
 }
