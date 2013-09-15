@@ -25,7 +25,7 @@ defaults:
 
 models:
     Mmitasch\Flow4ember\Domain\Model\Tasklist:
-        # resourceName: lists # not needed because default
+        # resourceName: lists
         associations: 
             tasks: 
                 sideload: yes

@@ -7,7 +7,7 @@ namespace Mmitasch\Flow4ember\Controller;
  *                                                                        */
 
 use TYPO3\Flow\Annotations as Flow,
- \Mmitasch\Flow4ember\Serializer\EpfSerializer;
+	Mmitasch\Flow4ember\Serializer\EpfSerializer;
 
 /**
  * An action controller for RESTful web services EPF style

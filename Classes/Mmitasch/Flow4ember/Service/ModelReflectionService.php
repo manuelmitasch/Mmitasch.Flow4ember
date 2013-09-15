@@ -8,7 +8,7 @@ namespace Mmitasch\Flow4ember\Service;
  *                                                                        */
 
 use TYPO3\Flow\Annotations as Flow,
-		\Mmitasch\Flow4ember\Domain\Model\Metamodel;
+		Mmitasch\Flow4ember\Domain\Model\Metamodel;
 
 /**
  * 
@@ -30,7 +30,7 @@ class ModelReflectionService {
 	
 	/**
 	 * @Flow\Inject
-	 * @var TYPO3\Flow\Configuration\ConfigurationManager
+	 * @var \TYPO3\Flow\Configuration\ConfigurationManager
 	 */
 	protected $configurationManager;
 	
@@ -52,7 +52,7 @@ class ModelReflectionService {
 		$models = $this->reflectionService->getClassNamesByAnnotation('\Mmitasch\Flow4ember\Annotations\Resource');
 		
 		foreach ($models as $modelName) {
-			if (array_key_exists($modelName, $this->config['models'])) {
+			if (isset($this->config['models'][$modelName])) {
 				$this->metaModels[$modelName] = new Metamodel($modelName, $this->config);
 			} else {
 				$this->metaModels[$modelName] = new Metamodel($modelName);	
