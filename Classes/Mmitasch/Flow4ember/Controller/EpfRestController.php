@@ -57,7 +57,7 @@ class EpfRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 
 	/**
 	 * @Flow\Inject
-	 * @var \Mmitasch\Flow4ember\Service\ModelReflectionService
+	 * @var \Mmitasch\Flow4ember\Service\ModelReflectionServiceInterface
 	 */
 	protected $modelReflectionService;
 	
@@ -83,9 +83,24 @@ class EpfRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 	 */
 	protected $serializer;
 	
+	/**
+	 * @var string
+	 */
+	protected $packageKey;
+	
+	
 	function __construct() {
-		$this->serializer = new EpfSerializer();
-		parent::__construct();
+		if (!isset($this->packageKey)) {
+			$tokens = explode('\\', get_class($this));
+			$packageNamespace = trim($tokens[0]);
+			$packageName = trim($tokens[1]);
+			$this->packageKey = $packageNamespace . '.' . $packageName;
+		}
+	}
+
+	
+	public function initializeObject() {
+		$this->serializer = new EpfSerializer($this->modelReflectionService->getMetaModels($this->packageKey));
 	}
 	
 	
@@ -148,12 +163,12 @@ class EpfRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 		if ($this->resourceName === NULL) {
 			if ($this->flowModelName !== NULL) {
 				// resourceName is not set but flowModelName is set (eg. by inheriting class)
-				$this->metaModel = $this->modelReflectionService->findByFlowModelName($this->flowModelName);
+				$this->metaModel = $this->modelReflectionService->findByFlowModelName($this->flowModelName, $this->packageKey);
 			} else {
 				// resourceName is not set (eg. by inheriting class) => find from arguments (route part)
 				if ($this->request->hasArgument("resourceName")) {
 					$this->resourceName = $this->request->getArgument('resourceName');
-					$this->metaModel = $this->modelReflectionService->findByResourceName($this->resourceName);
+					$this->metaModel = $this->modelReflectionService->findByResourceName($this->resourceName, $this->packageKey);
 				} else {
 					$this->throwStatus(500, NULL, 'No resource name found.');
 				}
@@ -161,7 +176,7 @@ class EpfRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 		}
 		else {
 			// resourceName is set
-			$this->metaModel = $this->modelReflectionService->findByResourceName($this->resourceName);
+			$this->metaModel = $this->modelReflectionService->findByResourceName($this->resourceName, $this->packageKey);
 		}
 		
 			// check if repository exists
@@ -350,18 +365,6 @@ class EpfRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 	 */
 	public function createAction($model, $clientId = NULL) {
 		$this->metaModel->getRepository()->add($model);
-		
-//		$assignee = $model->getAssignee();
-//		$assignee->setTask($model);
-//		$x=\TYPO3\Flow\var_dump($assignee, '', FALSE, TRUE);
-//		$this->systemLogger->log("Assignee in Create Action: " . $x, LOG_INFO); // TODO remove
-//
-//		
-//		$flowModelName = get_class($assignee);
-//		echo $flowModelName;
-//		$metaModel = $this->modelReflectionService->findByFlowModelName($flowModelName);
-//		$metaModel->getRepository()->update($assignee);
-		
 		$this->persistenceManager->persistAll(); 
 		
 		$this->response->setStatus(201);

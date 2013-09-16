@@ -11,10 +11,9 @@ use TYPO3\Flow\Annotations as Flow,
 		Mmitasch\Flow4ember\Domain\Model\Metamodel;
 
 /**
- * 
  * @Flow\Scope("singleton")
  */
-class ModelReflectionService {
+class ModelReflectionService implements ModelReflectionServiceInterface {
 	
 	/**
 	 * @var array
@@ -22,7 +21,7 @@ class ModelReflectionService {
 	protected $metaModels;
 	
 	/**
-	 * config from Ember.yaml
+	 * config from Ember.yaml files
 	 * 
 	 * @var array
 	 */
@@ -50,49 +49,74 @@ class ModelReflectionService {
 	public function initializeObject() {
 		$this->config = $this->configurationManager->getConfiguration('Ember');
 		$models = $this->reflectionService->getClassNamesByAnnotation('\Mmitasch\Flow4ember\Annotations\Resource');
-		
+
+			// TODO add models that have Ember.Model Annotation
+			// add each model that has Ember.Resource Annotation
 		foreach ($models as $modelName) {
-			if (isset($this->config['models'][$modelName])) {
-				$this->metaModels[$modelName] = new Metamodel($modelName, $this->config);
-			} else {
-				$this->metaModels[$modelName] = new Metamodel($modelName);	
-			}
+			$tokens = explode('\\', $modelName);
+			$packageNamespace = trim($tokens[0]);
+			$packageName = trim($tokens[1]);
+			$packageKey = $packageNamespace . '.' . $packageName;
+			
+			$this->metaModels[$packageKey][$modelName] = new Metamodel($modelName);	
 		}
+		
+		// TODO add Ember.yaml config
+			// add/override each model that is configured in Ember.yaml
+//		foreach ($this->config as $packageNamespace => $packagesConfigs) {
+//			foreach ($packagesConfigs as $packageName => $packageConfig) {
+//				foreach ($packageConfig as $modelName => $modelConfig) {
+//					$packageKey = $packageNamespace . '.' . $packageName;
+//					$this->metaModels[$packageKey][$modelName] = new Metamodel($modelName, $packageConfig);
+//				}
+//			}
+//		}
 		
 //		$this->dumpModels(); // TODO: remove
 	}
 	
 	
 	/**
+	 * Get all Metamodels for the given package
+	 * 
+	 * @param string $packageKey The package in which the models are used (eg. 'Mmitasch.Taskplaner')
 	 * @return array<\Mmitasch\Flow4ember\Domain\Model\Metamodel>
 	 */
-	public function getMetaModels() {
-		return $this->metaModels;
+	public function getMetaModels($packageKey) {
+		if (!isset($this->metaModels[$packageKey])) {
+			throw new \RuntimeException('Could NOT find any Metamodels for package "' . $packageKey . '". Make sure to either annotate your models with Ember.Resource or configure models in your Ember.yaml', 1375148357); 
+		}
+		return $this->metaModels[$packageKey];
 	}
-	
 	
 	/**
 	 * Get Metamodel by Flow model name
 	 * 
 	 * @param string $flowModelName
+	 * @param string $packageKey The package in which the models are used (eg. 'Mmitasch.Taskplaner')
 	 * @return \Mmitasch\Flow4ember\Domain\Model\Metamodel
 	 */
-	public function findByFlowModelName($flowModelName) {
-		if (array_key_exists($flowModelName, $this->metaModels)) {
-			return $this->metaModels[$flowModelName];
-		} else {
+	public function findByFlowModelName($flowModelName, $packageKey) {
+		if (!isset($this->metaModels[$packageKey][$flowModelName])) {
 			throw new \RuntimeException('Could not find Metamodel for class: ' . $flowModelName . '.', 1375148357); 
 		}
+		return $this->metaModels[$packageKey][$flowModelName];
 	}
 	
 	/**
 	 * Get Metamodel by resource name
 	 * 
 	 * @param string $resourceName
+ 	 * @param string $packageKey The package in which the models are used (eg. 'Mmitasch.Taskplaner')
 	 * @return \Mmitasch\Flow4ember\Domain\Model\Metamodel
 	 */
-	public function findByResourceName($resourceName) {
-		foreach ($this->metaModels as $flowName => $metaModel) {
+	public function findByResourceName($resourceName, $packageKey) {
+		if (!isset($this->metaModels[$packageKey])) {
+			throw new \RuntimeException('Could NOT find any Metamodels for package "' . $packageKey . '". Make sure to either annotate your models with Ember.Resource or configure models in your Ember.yaml', 1375148357); 
+		}
+		
+			// search metamodel with given resourceName
+		foreach ($this->metaModels[$packageKey] as $flowName => $metaModel) {
 			if ($metaModel->getResourceName() === $resourceName) return $metaModel;
 		}
 		
@@ -103,10 +127,11 @@ class ModelReflectionService {
 	 * Is the resource with given name registered?
 	 * 
 	 * @param string $resourceName
+	 * @param string $packageKey The package in which the models are used (eg. 'Mmitasch.Taskplaner')
 	 * @return boolean
 	 */
-	public function hasResourceName($resourceName) {
-		return ($this->findByResourceName($resourceName) !== NULL);
+	public function hasResourceName($resourceName, $packageKey) {
+		return ($this->findByResourceName($resourceName, $packageKey) !== NULL);
 	}
 	
 	

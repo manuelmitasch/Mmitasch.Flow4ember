@@ -326,8 +326,7 @@ class Metamodel {
 	protected function extractConfig ($config, $flowName) {
 		$extractedConfig = array();
 		
-		if ($config !== NULL && array_key_exists('models', $config)
-				&& array_key_exists($flowName, $config['models'])) {
+		if (isset($config['models'][$flowName])) {
 			$extractedConfig = $config['models'][$flowName];			
 		}
 		

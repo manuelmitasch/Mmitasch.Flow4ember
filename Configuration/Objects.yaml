@@ -1,0 +1,4 @@
+Mmitasch\Flow4ember\Service\ModelReflectionServiceInterface:
+  className: Mmitasch\Flow4ember\Service\ModelReflectionService
+  scope: singleton
+  autowiring: on

@@ -1,18 +1,19 @@
 # Ember.yaml 
 # Configuration for Flow4ember Package
+Mmitasch:
+  Flow4ember:
+    emberNamespace: App	# not needed because default
+    restNamespace: rest/ # not needed because default
+    restController: Mmitasch\Blog\Controller\EmberRestController
+    modelReflectionService: Mmitasch\Blog\Service\ModelReflectionService 
+    persistenceLibrary: EPF  # not needed because default
+  
+    typeConverters: 
+      - Mmitasch\Blog\Converter\CustomDateConverter
 
-emberNamespace: App	# not needed because default
-restNamespace: rest/ # not needed because default
-restController: Mmitasch\Blog\Controller\EmberRestController
-modelReflectionService: Mmitasch\Blog\Service\ModelReflectionService 
-persistenceLibrary: EPF  # not needed because default
-
-typeConverters: 
-    - Mmitasch\Blog\Converter\CustomDateConverter
-
-defaults:
-    generate: [model, view]  # only model and view will be generated
-    mergeStrategy:
+    defaults:
+      generate: [model, view]  # only model and view will be generated
+      mergeStrategy:
         default: merge  # not need because default
         model: merge
         view: merge
@@ -23,10 +24,9 @@ defaults:
         flowRoutes: keep
         flowAppController: keep
 
-models:
-    Mmitasch\Flow4ember\Domain\Model\Tasklist:
-        # resourceName: lists
+    models:
+      Mmitasch\Flow4ember\Domain\Model\Tasklist:
+        resourceName: lists
         associations: 
-            tasks: 
-                sideload: yes
-
+          tasks: 
+           sideload: yes

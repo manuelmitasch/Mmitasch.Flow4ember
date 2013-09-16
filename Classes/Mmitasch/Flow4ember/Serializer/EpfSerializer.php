@@ -31,12 +31,6 @@ class EpfSerializer implements SerializerInterface {
 	}
 	
 	/**
-	 * @Flow\Inject
-	 * @var \Mmitasch\Flow4ember\Service\ModelReflectionService
-	 */
-	protected $modelReflectionService;
-	
-	/**
 	 * @var \TYPO3\Flow\Persistence\PersistenceManagerInterface
 	 * @Flow\Inject
 	 */
@@ -47,6 +41,23 @@ class EpfSerializer implements SerializerInterface {
 	 */
 	protected $sideloadObjects;
 	
+	/**
+	 * The Metamodels possibly needed for serialization
+	 * 
+	 * @var array<\Mmitasch\Flow4ember\Domain\Model\Metamodel>
+	 */
+	protected $metaModels;
+	
+	/**
+	 * Constructor
+	 * 
+	 * @param array<\Mmitasch\Flow4ember\Domain\Model\Metamodel> $metaModels
+	 */
+	function __construct($metaModels) {
+		$this->metaModels = $metaModels;
+	}
+
+
 	/**
 	 * Used for serializing inputted objects
 	 * 
@@ -61,7 +72,7 @@ class EpfSerializer implements SerializerInterface {
 			return json_encode((object) $result);
 		}
 		$flowModelName = is_array($objects) ? get_class($objects[0]) : get_class($objects);
-		$metaModel = $this->modelReflectionService->findByFlowModelName($flowModelName);
+		$metaModel = $this->findByFlowModelName($flowModelName);
 		
 		if ($isCollection) {
 			$resourceName = $metaModel->getResourceName();
@@ -77,7 +88,7 @@ class EpfSerializer implements SerializerInterface {
 		
 //		if (!empty($this->sideloadObjects)) {
 //			foreach ($this->sideloadObjects as $flowModelName => $objects) {
-//				$associationMetaModel = $this->modelReflectionService->findByFlowModelName($flowModelName);
+//				$associationMetaModel = $this->findByFlowModelName($flowModelName);
 //				$associationResourceName = $associationMetaModel->getResourceName();
 //				
 //				if (is_array($objects)) {
@@ -165,7 +176,7 @@ class EpfSerializer implements SerializerInterface {
 	protected function serializeAssociation($objects, Association $association) {
 		$result = array();
 		$associationFlowModelName = $association->getFlowModelName();
-		$associationMetaModel = $this->modelReflectionService->findByFlowModelName($associationFlowModelName);
+		$associationMetaModel = $this->findByFlowModelName($associationFlowModelName);
 		
 		if ($association->getIsCollection()) {
 			 if ($association->getEmbedded() === "always" || $association->getEmbedded() === "load") {
@@ -267,13 +278,27 @@ class EpfSerializer implements SerializerInterface {
 	 * @param string $type
 	 * @return string
 	 */
-	private function getPayloadName ($name, $type='') {
+	protected function getPayloadName ($name, $type='') {
 		if ($type === 'belongsTo') {
 			return NamingUtility::decamelize($name) . '_id';
 		} elseif ($type === 'hasMany') {
 			return NamingUtility::singularize(NamingUtility::decamelize($name)) . '_ids';
 		}
 		return NamingUtility::decamelize($name);
+	}
+	
+	
+	/**
+	 * Get Metamodel by Flow model name
+	 * 
+	 * @param string $flowModelName
+	 * @return \Mmitasch\Flow4ember\Domain\Model\Metamodel
+	 */
+	protected function findByFlowModelName($flowModelName) {
+		if (!isset($this->metaModels[$flowModelName])) {
+			throw new \RuntimeException('Could not find Metamodel for class: ' . $flowModelName . '.', 1375148357); 
+		}
+		return $this->metaModels[$flowModelName];
 	}
 	
 }

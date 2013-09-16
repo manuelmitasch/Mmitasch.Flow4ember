@@ -29,7 +29,7 @@ interface SerializerInterface {
 	 * @return array Property array for datamapper
 	 */
 	public function deserialize ($data, $metaModel);
-
+	
 }
 
 ?>
