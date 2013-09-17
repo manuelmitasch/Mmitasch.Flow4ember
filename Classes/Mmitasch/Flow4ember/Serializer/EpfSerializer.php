@@ -55,6 +55,8 @@ class EpfSerializer implements SerializerInterface {
 	 */
 	function __construct($metaModels) {
 		$this->metaModels = $metaModels;
+		
+//		\TYPO3\Flow\var_dump($metaModels);
 	}
 
 
@@ -86,22 +88,22 @@ class EpfSerializer implements SerializerInterface {
 			}
 		}
 		
-//		if (!empty($this->sideloadObjects)) {
-//			foreach ($this->sideloadObjects as $flowModelName => $objects) {
-//				$associationMetaModel = $this->findByFlowModelName($flowModelName);
-//				$associationResourceName = $associationMetaModel->getResourceName();
-//				
-//				if (is_array($objects)) {
-//					foreach ($objects as $object) {
-//						$result[$associationResourceName][] = $this->serializeObject($object, $associationMetaModel);
-//					}
-//				} else {
-//					$result[$associationResourceName][] = $this->serializeObject($objects, $associationMetaModel);
-//				}
-//				
-//				
-//			}
-//		}
+		if (!empty($this->sideloadObjects)) {
+			foreach ($this->sideloadObjects as $flowModelName => $objects) {
+				$associationMetaModel = $this->findByFlowModelName($flowModelName);
+				$associationResourceName = $associationMetaModel->getResourceName();
+				
+				if (is_array($objects)) {
+					foreach ($objects as $object) {
+						$result[$associationResourceName][] = $this->serializeObject($object, $associationMetaModel);
+					}
+				} else {
+					$result[$associationResourceName][] = $this->serializeObject($objects, $associationMetaModel);
+				}
+				
+				
+			}
+		}
 		
 		return json_encode((object) $result);
 	}

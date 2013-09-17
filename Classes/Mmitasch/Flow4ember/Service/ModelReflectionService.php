@@ -8,7 +8,8 @@ namespace Mmitasch\Flow4ember\Service;
  *                                                                        */
 
 use TYPO3\Flow\Annotations as Flow,
-		Mmitasch\Flow4ember\Domain\Model\Metamodel;
+		Mmitasch\Flow4ember\Domain\Model\Metamodel,
+		Mmitasch\Flow4ember\Utility\NamingUtility;
 
 /**
  * @Flow\Scope("singleton")
@@ -48,29 +49,29 @@ class ModelReflectionService implements ModelReflectionServiceInterface {
 	 */
 	public function initializeObject() {
 		$this->config = $this->configurationManager->getConfiguration('Ember');
-		$models = $this->reflectionService->getClassNamesByAnnotation('\Mmitasch\Flow4ember\Annotations\Resource');
 
-			// TODO add models that have Ember.Model Annotation
-			// add each model that has Ember.Resource Annotation
-		foreach ($models as $modelName) {
-			$tokens = explode('\\', $modelName);
-			$packageNamespace = trim($tokens[0]);
-			$packageName = trim($tokens[1]);
-			$packageKey = $packageNamespace . '.' . $packageName;
-			
-			$this->metaModels[$packageKey][$modelName] = new Metamodel($modelName);	
-		}
+			 
+			// get each model that has an Ember.Model Annotation
+		$models = $this->reflectionService->getClassNamesByAnnotation('\Mmitasch\Flow4ember\Annotations\Model');
+			// add each model that has an Ember.Model Annotation
+		$this->addMetaModels($models);
 		
-		// TODO add Ember.yaml config
+			// get each model that has an Ember.Resource Annotation
+		$resources = $this->reflectionService->getClassNamesByAnnotation('\Mmitasch\Flow4ember\Annotations\Resource');
+			// add each model that has an Ember.Resource Annotation
+		$this->addMetaModels($resources);
+		
 			// add/override each model that is configured in Ember.yaml
-//		foreach ($this->config as $packageNamespace => $packagesConfigs) {
-//			foreach ($packagesConfigs as $packageName => $packageConfig) {
-//				foreach ($packageConfig as $modelName => $modelConfig) {
-//					$packageKey = $packageNamespace . '.' . $packageName;
-//					$this->metaModels[$packageKey][$modelName] = new Metamodel($modelName, $packageConfig);
-//				}
-//			}
-//		}
+		foreach ($this->config as $packageNamespace => $packagesConfigs) {
+			foreach ($packagesConfigs as $packageName => $packageConfig) {
+				if(isset($packageConfig['models'])) {
+					foreach ($packageConfig['models'] as $modelName => $modelConfig) {
+						$packageKey = $packageNamespace . '.' . $packageName;
+						$this->metaModels[$packageKey][$modelName] = new Metamodel($modelName, $packageConfig);
+					}
+				}
+			}
+		}
 		
 //		$this->dumpModels(); // TODO: remove
 	}
@@ -132,6 +133,39 @@ class ModelReflectionService implements ModelReflectionServiceInterface {
 	 */
 	public function hasResourceName($resourceName, $packageKey) {
 		return ($this->findByResourceName($resourceName, $packageKey) !== NULL);
+	}
+	
+	/**
+	 * Get all Metamodels that are a resource for the given package.
+	 * 
+	 * @param string $packageKey The package in which the models are used (eg. 'Mmitasch.Taskplaner')
+	 * @return array<\Mmitasch\Flow4ember\Domain\Model\Metamodel>
+	 */
+	public function getResources($packageKey) {
+		if (!isset($this->metaModels[$packageKey])) {
+			throw new \RuntimeException('Could NOT find any Metamodels for package "' . $packageKey . '". Make sure to either annotate your models with Ember.Resource or configure models in your Ember.yaml', 1375148357); 
+		}
+		
+		$resources = array();
+				
+		foreach ($this->metaModels[$packageKey] as $metaModel) {
+			if ($metaModel->isResource()) $resources[] = $metaModel;
+		}
+		
+		return $resources;
+	}
+	
+	/**
+	 * Creates new Metamodels for the given classnames
+	 * and adds it to the metaModels array.
+	 * 
+	 * @param array $modelNames
+	 */
+	protected function addMetaModels($modelNames) {
+		foreach ($modelNames as $modelName) {
+			$packageKey = NamingUtility::extractPackageKey($modelName);
+			$this->metaModels[$packageKey][$modelName] = new Metamodel($modelName);	
+		}
 	}
 	
 	

@@ -26,7 +26,8 @@ Mmitasch:
 
     models:
       Mmitasch\Flow4ember\Domain\Model\Tasklist:
-        resourceName: lists
+        #resourceName: tasklists
         associations: 
           tasks: 
            sideload: yes
+

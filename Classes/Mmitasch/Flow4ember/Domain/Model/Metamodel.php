@@ -53,26 +53,35 @@ class Metamodel {
 		$this->resourceNameSingular = strtolower($this->modelName);
 		$this->emberName = $emberNamespace . '.' . $this->flowName;
 
-		// set resource name
+
+		// get Annotations
 		$resourceAnnotation = $reflectionService->getClassAnnotation($flowModelName, '\Mmitasch\Flow4ember\Annotations\Resource');
-		$this->resourceName = $resourceAnnotation->getName();
-		
-		if (array_key_exists('resourceName', $this->config)) {
-			$this->resourceName = $this->config['resourceName']; // set from Ember.yaml
-		} else {
-			$this->resourceName = ($this->resourceName === NULL) ? NamingUtility::pluralize($this->resourceNameSingular) : $this->resourceName;
-		}
-		
+		$modelAnnotation = $reflectionService->getClassAnnotation($flowModelName, '\Mmitasch\Flow4ember\Annotations\Model');
+
 		// set isResource
-		if (array_key_exists('resource', $this->config)) {
+		if ($modelAnnotation !== NULL) {
+			$this->isResource = false;
+		}
+		if ($resourceAnnotation !== NULL) {
+			$this->isResource = true;
+		}
+		if (isset($this->config['resource'])) {
 			if ($this->config['resource'] === 'no') {
 				$this->isResource = false;
-				$this->resourceName = '';
 			} else {
 				$this->isResource = true;
 			}
 		}
-		
+				
+		// set resource name
+		if (isset($this->config['resourceName'])) {
+			$this->resourceName = $this->config['resourceName']; // set from Ember.yaml
+		} else {
+			if ($resourceAnnotation !== NULL) {
+				$this->resourceName = ($resourceAnnotation->getName() !== NULL) ? $resourceAnnotation->getName() : NamingUtility::pluralize($this->resourceNameSingular);
+			}
+		}
+
 		// set repository if exists
 		$repositoryName = str_replace(array('\\Model\\'), array('\\Repository\\'), $this->flowName) . 'Repository';
 		if ($objectManager->isRegistered($repositoryName)) {
@@ -145,7 +154,7 @@ class Metamodel {
 	/**
 	 * @return string
 	 */
-	public function getFlowModelName() {
+	public function getFlowName() {
 		return $this->flowName;
 	}
 
@@ -204,6 +213,13 @@ class Metamodel {
 	 * @return boolean
 	 */
 	public function getIsResource() {
+		return $this->isResource;
+	}	
+	
+	/**
+	 * @return boolean
+	 */
+	public function isResource() {
 		return $this->isResource;
 	}	
 	

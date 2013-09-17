@@ -23,7 +23,7 @@ use TYPO3\Flow\Annotations as Flow;
 class NamingUtility {
 
 	/**
-	 * This method underscores attributes camelCased properties
+	 * under_scores a camelCased string
 	 *
 	 * @param string $string
 	 * @return string
@@ -34,7 +34,7 @@ class NamingUtility {
 	}
 
 	/**
-	 * This method camelCases attributes underscored properties
+	 * camelCases an under_scored string
 	 *
 	 * @param string $string
 	 * @return string
@@ -47,7 +47,7 @@ class NamingUtility {
 	}
 
 	/**
-	 * Converts an underscored classname to UpperCamelCased
+	 * Converts an under_scored classname to UpperCamelCased
 	 *
 	 * @param string $className
 	 * @return string
@@ -61,7 +61,8 @@ class NamingUtility {
 	}
 
 	/**
-	 * Converts a UpperCamelCased classname to underscored className
+	 * Converts a UpperCamelCased classname to under_scored className
+	 * 
 	 * @param string $className
 	 * @return string
 	 */
@@ -95,6 +96,9 @@ class NamingUtility {
 	}
 	
 	/**
+	 * Pluralizes the given word.
+	 * Uses an Inflector.
+	 * 
 	 * @param string $word The word to pluralize
 	 * @return string The pluralized word
 	 */
@@ -103,12 +107,30 @@ class NamingUtility {
 	}
 	
 	/**
+	 * Singularizes the given word.
+	 * Uses an Inflector.
+	 * 
 	 * @param string $word The word to singularize
 	 * @return string The singularized word
 	 */
 	static public function singularize($word) {
 		return \Mmitasch\Flow4ember\Utility\ShoInflect::singularize($word);
 	}
+	
+	/**
+	 * Extracts the Flow packageKey from a given flow class name
+	 * 
+	 * @param string $flowName
+	 * @return string
+	 */
+	static public function extractPackageKey($flowName) {
+		$tokens = explode('\\', $flowName);
+		$packageNamespace = trim($tokens[0]);
+		$packageName = trim($tokens[1]);
+		$packageKey = $packageNamespace . '.' . $packageName;
+		return $packageKey;
+	}
+	
 
 
 }

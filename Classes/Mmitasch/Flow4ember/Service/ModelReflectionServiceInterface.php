@@ -13,7 +13,7 @@ interface ModelReflectionServiceInterface {
 	
 	
 	/**
-	 * Get all Metamodels for the given package
+	 * Get all Metamodels for the given package.
 	 * 
 	 * @param string $packageKey The package in which the models are used (eg. 'Mmitasch.Taskplaner')
 	 * @return array<\Mmitasch\Flow4ember\Domain\Model\Metamodel>
@@ -22,7 +22,7 @@ interface ModelReflectionServiceInterface {
 	
 	
 	/**
-	 * Get Metamodel by Flow model name
+	 * Get Metamodel by Flow model name.
 	 * 
 	 * @param string $flowModelName
 	 * @param string $packageKey The package in which the models are used (eg. 'Mmitasch.Taskplaner')
@@ -31,7 +31,7 @@ interface ModelReflectionServiceInterface {
 	public function findByFlowModelName($flowModelName, $packageKey);
 	
 	/**
-	 * Get Metamodel by resource name
+	 * Get Metamodel by resource name.
 	 * 
 	 * @param string $resourceName
  	 * @param string $packageKey The package in which the models are used (eg. 'Mmitasch.Taskplaner')
@@ -48,6 +48,14 @@ interface ModelReflectionServiceInterface {
 	 */
 	public function hasResourceName($resourceName, $packageKey);
 
+	/**
+	 * Get all Metamodels that are a resource for the given package.
+	 * 
+	 * @param string $packageKey The package in which the models are used (eg. 'Mmitasch.Taskplaner')
+	 * @return array<\Mmitasch\Flow4ember\Domain\Model\Metamodel>
+	 */
+	public function getResources($packageKey);
+	
 }
 
 ?>

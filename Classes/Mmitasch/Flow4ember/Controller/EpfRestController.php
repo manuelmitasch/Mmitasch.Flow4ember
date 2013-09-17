@@ -198,7 +198,7 @@ class EpfRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 				// set model id in request argument
 			$arguments['model'] = array('__identity' => $this->request->getArgument('resourceId'));
 				// set data type for model argument
-			$this->arguments->addNewArgument('model', $this->metaModel->getFlowModelName(), TRUE); 
+			$this->arguments->addNewArgument('model', $this->metaModel->getFlowName(), TRUE); 
 		}
 		
 		unset($arguments['resourceName']);
@@ -213,7 +213,7 @@ class EpfRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 	 */
 	public function initializeCreateAction() {
 			// set data type of model argument
-		$this->arguments->addNewArgument('model', $this->metaModel->getFlowModelName(), TRUE);
+		$this->arguments->addNewArgument('model', $this->metaModel->getFlowName(), TRUE);
 		
 		$propertyMappingConfiguration = $this->arguments['model']->getPropertyMappingConfiguration();
 		$propertyMappingConfiguration->setTypeConverterOption(
@@ -255,7 +255,7 @@ class EpfRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 	 */
 	public function initializeUpdateAction() {
 			// set data type of model argument
-		$this->arguments->addNewArgument('model', $this->metaModel->getFlowModelName(), TRUE);
+		$this->arguments->addNewArgument('model', $this->metaModel->getFlowName(), TRUE);
 		
 		$propertyMappingConfiguration = $this->arguments['model']->getPropertyMappingConfiguration();
 		$propertyMappingConfiguration->setTypeConverterOption(
