@@ -4,11 +4,13 @@
 		<meta charset="utf-8">
 		<title><f:render section="Title" /></title>
 		<f:base />
+		<link href="{f:uri.resource(path: 'Css/bootstrap.min.css')}" rel="stylesheet" />
 	</head>
 	<body>
 		<f:flashMessages class="flashmessages" />
 
-		<h1><f:render section="Title" /></h1>
-		<f:render section="Content" />
+		<div class="container">
+			<f:render section="Content" />
+		</div>
 	</body>
 </html>

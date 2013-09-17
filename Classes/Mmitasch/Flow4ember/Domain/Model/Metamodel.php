@@ -37,11 +37,12 @@ class Metamodel {
 	/**
 	 * 
 	 * @param string $flowModelName
+	 * @param string $packageKey The packageKey for the package in which the Metamodel will be used.
 	 * @param array $config Configuration from Ember.yaml
 	 * @param \TYPO3\Flow\Reflection\ReflectionService $reflectionService
 	 * @param \TYPO3\Flow\Object\ObjectManagerInterface $objectManager
 	 */
-	public function __construct($flowModelName, $config, \TYPO3\Flow\Reflection\ReflectionService $reflectionService, \Mmitasch\Flow4ember\Service\ConverterService $converterService, \TYPO3\Flow\Object\ObjectManagerInterface $objectManager) {
+	public function __construct($flowModelName, $packageKey, $config, \TYPO3\Flow\Reflection\ReflectionService $reflectionService, \Mmitasch\Flow4ember\Service\ConverterService $converterService, \TYPO3\Flow\Object\ObjectManagerInterface $objectManager) {
 		$this->config = $this->extractConfig($config, $flowModelName);	
 		$emberNamespace = $this->extractEmberNamespace($config);
 		unset($config); // unset to avoid confusion between $config and $this->config
@@ -52,6 +53,7 @@ class Metamodel {
 		$this->modelName = NamingUtility::extractMetamodelname($flowModelName);
 		$this->resourceNameSingular = strtolower($this->modelName);
 		$this->emberName = $emberNamespace . '.' . $this->flowName;
+		$this->packageKey = $packageKey;
 
 
 		// get Annotations
@@ -92,6 +94,13 @@ class Metamodel {
 		$this->initPropertiesAndAssociations();
 	}
 
+	/**
+	 * The packageKey for the package in which the Metamodel will be used.
+	 * 
+	 * @var string
+	 */
+	protected $packageKey;
+	
 	/**
 	 * meta model name; derived from $flowModelName
 	 * 
@@ -224,10 +233,17 @@ class Metamodel {
 	}	
 	
 	/**
-	 * @param boolean $isResource
+	 * @return string
 	 */
-	public function setIsResource($isResource) {
-		$this->isResource = $isResource;
+	public function getPackageKey() {
+		return $this->packageKey;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getEmberName() {
+		return $this->emberName;
 	}
 
 		

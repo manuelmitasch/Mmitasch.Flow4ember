@@ -1,0 +1,47 @@
+<f:layout name="Default" />
+
+<f:section name="Title">REST API Resources</f:section>
+
+
+<f:section name="Content">
+	<h1>REST API Resources</h1>
+	<table class="table table-striped table-bordered">
+		<thead>
+			<tr>
+				<th>Package</th>
+				<th>Resource Name</th>
+				<th>Flow Model Name</th>
+			</tr>
+		</thead>
+		
+		<tbody>
+			<f:for each="{resources}" as="resource">
+				<tr>
+					<td>{resource.packageKey}</td>
+					<td>{resource.resourceName}</td>
+					<td>{resource.flowName}</td>
+				</tr>
+			</f:for>
+		</tbody>
+	</table>
+	
+	
+	<h1>Configured Routes</h1>
+	<table class="table table-striped table-bordered">
+		<thead>
+			<tr>
+				<th>Resource Name</th>
+				<th>Flow Model Name</th>
+			</tr>
+		</thead>		
+		
+		<tbody>
+			<f:for each="{routes}" as="route">
+				<tr>
+					<td>{route.uriPattern}</td>
+					<td>{route.routeName}</td>
+				</tr>
+			</f:for>
+		</tbody>
+	</table>
+</f:section>

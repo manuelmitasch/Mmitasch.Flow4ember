@@ -88,18 +88,15 @@ class EpfRestController extends \TYPO3\Flow\Mvc\Controller\RestController {
 	 */
 	protected $packageKey;
 	
-	
-	function __construct() {
-		if (!isset($this->packageKey)) {
-			$tokens = explode('\\', get_class($this));
-			$packageNamespace = trim($tokens[0]);
-			$packageName = trim($tokens[1]);
-			$this->packageKey = $packageNamespace . '.' . $packageName;
-		}
-	}
-
-	
+	/**
+	 * Initializes object after dependencies have been injected
+	 * Sets the serializer.
+	 */
 	public function initializeObject() {
+		if (!isset($this->packageKey)) {
+			$this->packageKey = \Mmitasch\Flow4ember\Utility\NamingUtility::extractPackageKey(get_class($this));
+		}
+		
 		$this->serializer = new EpfSerializer($this->modelReflectionService->getMetaModels($this->packageKey));
 	}
 	

@@ -48,8 +48,8 @@ class ModelReflectionService implements ModelReflectionServiceInterface {
 	 * @return void
 	 */
 	public function initializeObject() {
+			// get Ember.yaml configurations
 		$this->config = $this->configurationManager->getConfiguration('Ember');
-
 			 
 			// get each model that has an Ember.Model Annotation
 		$models = $this->reflectionService->getClassNamesByAnnotation('\Mmitasch\Flow4ember\Annotations\Model');
@@ -67,7 +67,7 @@ class ModelReflectionService implements ModelReflectionServiceInterface {
 				if(isset($packageConfig['models'])) {
 					foreach ($packageConfig['models'] as $modelName => $modelConfig) {
 						$packageKey = $packageNamespace . '.' . $packageName;
-						$this->metaModels[$packageKey][$modelName] = new Metamodel($modelName, $packageConfig);
+						$this->metaModels[$packageKey][$modelName] = new Metamodel($modelName, $packageKey, $packageConfig);
 					}
 				}
 			}
@@ -141,17 +141,24 @@ class ModelReflectionService implements ModelReflectionServiceInterface {
 	 * @param string $packageKey The package in which the models are used (eg. 'Mmitasch.Taskplaner')
 	 * @return array<\Mmitasch\Flow4ember\Domain\Model\Metamodel>
 	 */
-	public function getResources($packageKey) {
-		if (!isset($this->metaModels[$packageKey])) {
+	public function getResources($packageKey = NULL) {
+		if (!isset($this->metaModels[$packageKey]) && $packageKey !== NULL) {
 			throw new \RuntimeException('Could NOT find any Metamodels for package "' . $packageKey . '". Make sure to either annotate your models with Ember.Resource or configure models in your Ember.yaml', 1375148357); 
 		}
 		
 		$resources = array();
-				
-		foreach ($this->metaModels[$packageKey] as $metaModel) {
-			if ($metaModel->isResource()) $resources[] = $metaModel;
-		}
 		
+		if ($packageKey === NULL) {
+			foreach ($this->metaModels as $packageKey => $package) {
+				foreach ($package as $metaModel) {
+					if ($metaModel->isResource()) $resources[] = $metaModel;
+				}
+			}
+		} else {
+			foreach ($this->metaModels[$packageKey] as $metaModel) {
+				if ($metaModel->isResource()) $resources[] = $metaModel;
+			}
+		}
 		return $resources;
 	}
 	
@@ -164,7 +171,7 @@ class ModelReflectionService implements ModelReflectionServiceInterface {
 	protected function addMetaModels($modelNames) {
 		foreach ($modelNames as $modelName) {
 			$packageKey = NamingUtility::extractPackageKey($modelName);
-			$this->metaModels[$packageKey][$modelName] = new Metamodel($modelName);	
+			$this->metaModels[$packageKey][$modelName] = new Metamodel($modelName, $packageKey);	
 		}
 	}
 	

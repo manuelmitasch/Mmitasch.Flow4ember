@@ -50,6 +50,7 @@ interface ModelReflectionServiceInterface {
 
 	/**
 	 * Get all Metamodels that are a resource for the given package.
+	 * If no packageKey is given, all resources of all packages are returned.
 	 * 
 	 * @param string $packageKey The package in which the models are used (eg. 'Mmitasch.Taskplaner')
 	 * @return array<\Mmitasch\Flow4ember\Domain\Model\Metamodel>
