@@ -1,0 +1,11 @@
+<div class="container">
+<h1>
+  #{model.modelName}#
+  <div class="pull-right">
+    {{#link-to "#{model.resourceName}#.new" class="btn btn-primary btn-sm"}}
+      <span class="glyphicon glyphicon-plus"></span> New
+    {{/link-to}}
+  </div>
+</h1>
+{{outlet}}
+</div>

@@ -1,0 +1,40 @@
+#{model.emberName}#Controller = Ember.ObjectController.extend({
+	needs: ['#{model.resourceName}#Index'],
+
+	actions: {
+		remove: function (#{model.modelNameLowercased}#) {
+			var controller = this;
+
+	  		if (window.confirm('Do you really want to delete this record?')) {
+		  		this.session.deleteModel(#{model.modelNameLowercased}#);
+		  		this.session.flush().then(function(models) {
+			    	controller.get('controllers.#{model.resourceName}#Index').content.removeObject(#{model.modelNameLowercased}#);
+			    	controller.transitionToRoute("#{model.resourceName}#");
+			    }, function(models){
+			     	alert("Could not remove record."); // TODO: add proper error handling
+			    });
+	  		}
+	  	},
+	  	startEditing: function() {
+	  		this.set('isEditing', true);
+	  	},
+	  	stopEditing: function() {
+	  		this.set('isEditing', false);
+	  	},
+		save: function (#{model.modelNameLowercased}#) {
+			var controller = this;
+			this.session.flush().then(function(models) {
+		     	newRecord = controller.get('content');
+		    	controller.send("stopEditing");
+		    }, function(models){
+		     	alert("Could not save record."); // TODO: add proper error handling
+		    });
+	  	},
+	  	cancel: function() {
+	    	this.transitionToRoute("#{model.resourceName}#");
+	  	}
+	},
+
+	isEditing: false,
+
+});

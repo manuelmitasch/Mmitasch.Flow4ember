@@ -1,0 +1,39 @@
+-
+  name: '#{packageKey}# Ember App'
+  uriPattern: '#{appRoute}#'
+  defaults:
+    '@package': '#{packageKey}#'
+    '@controller': 'Standard'
+    '@action': 'index'
+    '@format': 'html'
+
+-
+  name: '#{packageKey}# Ember REST API: Description'
+  uriPattern: '#{restRoute}#'
+  defaults:
+    '@package': '#{packageKey}#'
+    '@controller': 'Standard'
+    '@action': 'api'
+    '@format': 'html'
+
+-
+  name: '#{packageKey}# Ember REST API : Resources'
+  uriPattern: '#{restRoute}#/{resourceName}'
+  defaults:
+    '@package': '#{packageKey}#'
+    '@controller': '#{restControllerShortName}#'
+    '@format': 'json'
+  routeParts:
+    'resourceName':
+      handler: '#{routePart}#'
+
+-
+  name: '#{packageKey}# Ember REST API: Single resource'
+  uriPattern: '#{restRoute}#/{resourceName}/{resourceId}'
+  defaults:
+    '@package': '#{packageKey}#'
+    '@controller': '#{restControllerShortName}#'
+    '@format': 'json'
+  routeParts:
+    'resourceName':
+      handler: '#{routePart}#'

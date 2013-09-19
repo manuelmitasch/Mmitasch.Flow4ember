@@ -1,0 +1,28 @@
+<table class="table table-striped table-hover table-responsive">
+  <thead>
+    <tr>
+      <th>
+      </th>
+      <th>ID</th><f:for each="#{model.properties}#" as="property">
+      <th>#{property.nameCapitalized}#</th></f:for><f:for each="#{model.associations}#" as="association">
+      <th>#{association.emberNameCapitalized}#</th></f:for>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each #{model.modelNameLowercased}# in model}}
+    <tr>
+      <td>
+        {{#link-to "#{model.modelNameLowercased}#" #{model.modelNameLowercased}# class="btn btn-primary btn-xs"}}
+          <span class="glyphicon glyphicon-edit"></span>
+        {{/link-to}}
+        <button {{action "remove" #{model.modelNameLowercased}#}} class="btn btn-danger btn-xs">
+          <span class="glyphicon glyphicon-trash"></span>
+        </button>
+      </td>
+      <td>{{#{model.modelNameLowercased}#.id}}</td><f:for each="#{model.properties}#" as="property">
+      <td>{{#{model.modelNameLowercased}#.#{property.name}#}}</td></f:for><f:for each="#{model.associations}#" as="association">
+      <td><f:if condition="#{0: '#{association.emberType}#'}# == #{0: 'hasMany'}#"><f:then>{{#each child in #{model.modelNameLowercased}#.#{association.emberName}# }}{{child.id}}{{/each}}</f:then><f:else>{{#{model.modelNameLowercased}#.#{association.emberName}#.id}}</f:else></f:if></td></f:for>
+    </tr>
+    {{/each}}
+  </tbody>
+</table>

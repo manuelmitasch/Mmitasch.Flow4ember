@@ -44,15 +44,13 @@ class Metamodel {
 	 */
 	public function __construct($flowModelName, $packageKey, $config, \TYPO3\Flow\Reflection\ReflectionService $reflectionService, \Mmitasch\Flow4ember\Service\ConverterService $converterService, \TYPO3\Flow\Object\ObjectManagerInterface $objectManager) {
 		$this->config = $this->extractConfig($config, $flowModelName);	
-		$emberNamespace = $this->extractEmberNamespace($config);
+		$this->emberNamespace = $this->extractEmberNamespace($config);
 		unset($config); // unset to avoid confusion between $config and $this->config
 		$this->reflectionService = $reflectionService;
 		$this->converterService = $converterService;
 		
 		$this->flowName = $flowModelName;
 		$this->modelName = NamingUtility::extractMetamodelname($flowModelName);
-		$this->resourceNameSingular = strtolower($this->modelName);
-		$this->emberName = $emberNamespace . '.' . $this->flowName;
 		$this->packageKey = $packageKey;
 
 
@@ -80,7 +78,7 @@ class Metamodel {
 			$this->resourceName = $this->config['resourceName']; // set from Ember.yaml
 		} else {
 			if ($resourceAnnotation !== NULL) {
-				$this->resourceName = ($resourceAnnotation->getName() !== NULL) ? $resourceAnnotation->getName() : NamingUtility::pluralize($this->resourceNameSingular);
+				$this->resourceName = ($resourceAnnotation->getName() !== NULL) ? $resourceAnnotation->getName() : NamingUtility::pluralize($this->getModelNameLowercased());
 			}
 		}
 
@@ -115,12 +113,10 @@ class Metamodel {
 	protected $flowName;
 	
 	/**
-	 * ember model name.
-	 * either derived from modelName or configured through annotation or Ember.yaml.
-	 * 
+	 * the ember namespace for the model (eg. App of App.Model)
 	 * @var string
 	 */
-	protected $emberName;
+	protected $emberNamespace;
 	
 	/**
 	 * is model also a resource or just a model
@@ -137,12 +133,6 @@ class Metamodel {
 	 */
 	protected $resourceName;
 	
-	/**
-	 * resource name singular (lower cased model name)
-	 * @var string
-	 */
-	protected $resourceNameSingular;
-
 	/**
 	 * repository of flow domain model
 	 * @var TYPO3\Flow\Persistence\Repository
@@ -173,6 +163,10 @@ class Metamodel {
 	public function getModelName() {
 		return $this->modelName;
 	}
+	
+	public function getModelNameLowercased() {
+		return strtolower($this->modelName);
+	}
 
 	/**
 	 * @return string
@@ -185,7 +179,7 @@ class Metamodel {
 	 * @return string
 	 */
 	public function getResourceNameSingular() {
-		return $this->resourceNameSingular;
+		return $this->getModelNameLowercased();
 	}
 
 		
@@ -243,8 +237,13 @@ class Metamodel {
 	 * @return string
 	 */
 	public function getEmberName() {
-		return $this->emberName;
+		return $this->emberNamespace . '.' . $this->modelName;
 	}
+		
+	public function getEmberNamePlural() {
+		return $this->emberNamespace . '.' . ucfirst($this->resourceName);
+	}
+	
 
 		
 	/**

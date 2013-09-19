@@ -1,0 +1,5 @@
+#{model.emberNamePlural}#NewRoute = Ember.Route.extend({
+  model: function() {
+    return this.session.create(#{model.emberName}#);
+  }
+});

@@ -1,0 +1,44 @@
+{{#if controller.isEditing}}
+    <form {{action save this on="submit"}} class="form-horizontal">
+      <legend>Edit #{model.modelName}#</legend>
+
+      {{partial "#{model.modelNameLowercased}#_edit_fields"}}
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Update</button>
+        <button class="btn" {{action stopEditing}}>Cancel</button>
+      </div>
+    </form>
+
+{{else}}
+<div class="well well-sm">
+ 	<a class="btn btn-primary btn-sm" {{action startEditing}}>
+  		<span class="glyphicon glyphicon-edit"></span> Edit
+	</a>
+	<a class="btn btn-danger btn-sm" {{action remove this}}>
+		<span class="glyphicon glyphicon-trash"></span> Remove
+	</a>
+    {{#link-to "#{model.resourceName}#" class="btn btn-sm btn-default"}}
+        <span class="glyphicon glyphicon-list"></span>  Back
+    {{/link-to}}
+</div>
+<table class="table table-striped">
+	<tbody>
+    	<tr>
+        	<th>ID</th>
+        	<td>{{id}}</td>
+        </tr><f:for each="#{model.properties}#" as="property">
+        <tr>
+        	<th>#{property.nameCapitalized}#</th>
+           	<td>{{name}}</td>
+        </tr></f:for><f:for each="#{model.associations}#" as="association">
+        <tr>
+        	<th>#{association.emberNameCapitalized}#</th>
+        	<td>{{#each model in #{association.emberName}# }}{{model.id}}{{/each}}</td>
+        </tr></f:for>
+    </tbody>
+</table>
+{{/if}}
+
+
+

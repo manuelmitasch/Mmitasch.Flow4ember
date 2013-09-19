@@ -1,0 +1,8 @@
+<f:for each="#{model.properties}#" as="property"><div class="control-group">
+  <label class="control-label" for="#{property.name}#">#{property.nameCapitalized}#</label>
+  <div class="controls">
+    {{view Ember.TextField valueBinding="#{property.name}#" id="#{property.name}#" placeholder="#{property.nameCapitalized}#" required="true"}}
+  </div>
+</div>
+</f:for>
+TODO add associations

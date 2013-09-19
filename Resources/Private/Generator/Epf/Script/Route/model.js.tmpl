@@ -1,0 +1,17 @@
+#{model.emberName}#Route = Ember.Route.extend({
+
+	actions: {
+		error: function(error, transition) {
+			this.transitionTo('#{model.resourceName}#');
+		}
+	},
+
+	setupController: function(controller, model) {
+    	this._super.apply(this, arguments);
+
+	    // reset editing state
+	    if (controller.get('isEditing')) {
+	      controller.send('stopEditing');
+	    }
+	}
+});

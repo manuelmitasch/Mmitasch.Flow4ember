@@ -1,0 +1,6 @@
+App.Router.map(function () {
+<f:for each="#{models}#" as="model">	this.resource('#{model.resourceName}#', function() {
+		this.route('new');
+    	this.resource('#{model.modelNameLowercased}#', {path: ':#{model.modelNameLowercased}#_id'});
+ 	});
+</f:for>});

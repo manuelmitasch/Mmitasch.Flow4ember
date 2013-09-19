@@ -1,0 +1,3 @@
+#{model.emberName}#.reopen({
+<f:for each="#{model.properties}#" as="property">  #{property.name}#: Ep.attr('#{property.converter.emberType}#'),
+</f:for>});

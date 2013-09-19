@@ -73,6 +73,13 @@ class Association {
 	public function getFlowName() {
 		return $this->flowName;
 	}
+	
+	/**
+	 * @return string
+	 */
+	public function getFlowNameCapitalized() {
+		return ucfirst($this->flowName);
+	}
 
 	/**
 	 * @param string $flowName
@@ -87,6 +94,13 @@ class Association {
 	 */
 	public function getEmberName() {
 		return $this->emberName;
+	}
+	
+	/**
+	 * @return string
+	 */
+	public function getEmberNameCapitalized() {
+		return ucfirst($this->emberName);
 	}
 
 	/**

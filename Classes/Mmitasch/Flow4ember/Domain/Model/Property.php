@@ -37,6 +37,13 @@ class Property {
 	public function getName() {
 		return $this->name;
 	}
+	
+	/**
+	 * @return string
+	 */
+	public function getNameCapitalized() {
+		return ucfirst($this->name);
+	}
 
 	/**
 	 * @param string $name

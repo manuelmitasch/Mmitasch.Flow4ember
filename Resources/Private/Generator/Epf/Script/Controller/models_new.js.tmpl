@@ -1,0 +1,19 @@
+#{model.emberNamePlural}#NewController = Em.ObjectController.extend({
+	needs: ['#{model.resourceName}#Index'],
+
+	actions: {
+		save: function (#{model.modelNameSingular}#) {
+			var controller = this;
+			this.session.flush().then(function(models) {
+		     	newRecord = controller.get('content');
+		    	controller.get('controllers.#{model.resourceName}#Index').content.pushObject(newRecord);
+		    	controller.transitionToRoute("#{model.resourceName}#");
+		    }, function(models){
+		     	alert("Could not save record."); // TODO: add proper error handling
+		    });
+	  	},
+	  	cancel: function () {
+	  		this.transitionToRoute('#{model.resourceName}#');
+	  	}
+	}
+});

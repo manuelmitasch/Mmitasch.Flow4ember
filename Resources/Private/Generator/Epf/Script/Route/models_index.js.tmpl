@@ -1,0 +1,5 @@
+#{model.emberNamePlural}#IndexRoute = Ember.Route.extend({
+  model: function() {
+    return this.session.query('#{model.modelNameLowercased}#');
+  }
+});

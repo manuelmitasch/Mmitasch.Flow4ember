@@ -1,0 +1,11 @@
+{
+  "name": "Flow4ember",
+  "version": "0.0.0",
+  "author": "",
+  "private": true,
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-ember-templates": "~0.4.14",
+    "grunt-contrib-watch": "~0.5.3"
+  }
+}
