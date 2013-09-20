@@ -74,12 +74,15 @@ class Metamodel {
 		}
 				
 		// set resource name
-		if (isset($this->config['resourceName'])) {
+		if ($resourceAnnotation !== NULL && $resourceAnnotation->getName() !== NULL && !isset($this->config['resourceName'])) {
+			$this->resourceName = $resourceAnnotation->getName(); // set from Annotation
+			$this->customResourceName = true;
+		} elseif (isset($this->config['resourceName'])) {
 			$this->resourceName = $this->config['resourceName']; // set from Ember.yaml
+			$this->customResourceName = true;
 		} else {
-			if ($resourceAnnotation !== NULL) {
-				$this->resourceName = ($resourceAnnotation->getName() !== NULL) ? $resourceAnnotation->getName() : NamingUtility::pluralize($this->getModelNameLowercased());
-			}
+			$this->resourceName = NamingUtility::pluralize($this->getModelNameLowercased());
+			$this->customResourceName = false;
 		}
 
 		// set repository if exists
@@ -132,6 +135,12 @@ class Metamodel {
 	 * @var string
 	 */
 	protected $resourceName;
+	
+	/**
+	 * True if a custom resource name was assigned through Ember.yaml or Annotation
+	 * @var boolean
+	 */
+	protected $customResourceName;
 	
 	/**
 	 * repository of flow domain model
@@ -240,12 +249,21 @@ class Metamodel {
 		return $this->emberNamespace . '.' . $this->modelName;
 	}
 		
+	/**
+	 * @return string
+	 */
 	public function getEmberNamePlural() {
 		return $this->emberNamespace . '.' . ucfirst($this->resourceName);
 	}
 	
+	/**
+	 * @return boolean
+	 */
+	public function getCustomResourceName() {
+		return $this->customResourceName;
+	}
 
-		
+			
 	/**
 	 * Init the model properties and associations
 	 */
@@ -265,19 +283,23 @@ class Metamodel {
 			// TODO: handle abstract classes and interfaces
 			
 			if ($this->isAssociation($propertyName)) {
+				$inversedBy = NULL;
+				$mappedBy = NULL;
 				
 					// get annotations
 				$annotations = $this->reflectionService->getPropertyAnnotations($this->flowName, $propertyName);
 				
 					// get flow type of association
-				if (array_key_exists('Doctrine\ORM\Mapping\OneToOne', $annotations)) {
+				if (isset($annotations['Doctrine\ORM\Mapping\OneToOne'])) {
 					$flowType = 'OneToOne';
-				} elseif (array_key_exists('Doctrine\ORM\Mapping\OneToMany',$annotations))  {
+				} elseif (isset($annotations['Doctrine\ORM\Mapping\OneToMany']))  {
 					$flowType = 'OneToMany';
-				} elseif (array_key_exists('Doctrine\ORM\Mapping\ManyToMany', $annotations)) {
+					$mappedBy = reset($annotations['Doctrine\ORM\Mapping\OneToMany'])->mappedBy;
+				} elseif (isset($annotations['Doctrine\ORM\Mapping\ManyToMany'])) {
 					$flowType = 'ManyToMany';
-				} elseif (array_key_exists('Doctrine\ORM\Mapping\ManyToOne', $annotations)) {
+				} elseif (isset($annotations['Doctrine\ORM\Mapping\ManyToOne'])) {
 					$flowType = 'ManyToOne';
+					$inversedBy = reset($annotations['Doctrine\ORM\Mapping\ManyToOne'])->inversedBy;
 				} else {
 					throw new \RuntimeException('Could not identify association type.', 1375148355); 
 				}
@@ -316,7 +338,7 @@ class Metamodel {
 				}  
 				
 					// add association
-				$this->associations[$propertyName] = new Association($propertyName, $propertyName, $flowModelName, $flowType, $emberType, $sideload, $embedded, $isCollection);
+				$this->associations[$propertyName] = new Association($propertyName, $propertyName, $flowModelName, $flowType, $emberType, $sideload, $embedded, $isCollection, $inversedBy, $mappedBy);
 				
 			} else {
 				// TODO check Ember.yaml for custom TypeConverter

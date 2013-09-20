@@ -11,7 +11,13 @@ use TYPO3\Flow\Annotations as Flow,
 
 class Association {
 
-	function __construct($flowName, $emberName, $flowModelName, $flowType, $emberType, $sideload, $embedded, $isCollection) {
+	/**
+	 * @Flow\Inject
+	 * @var \Mmitasch\Flow4ember\Service\ModelReflectionServiceInterface
+	 */
+	protected $modelReflectionService;
+	
+	function __construct($flowName, $emberName, $flowModelName, $flowType, $emberType, $sideload, $embedded, $isCollection, $inversedBy, $mappedBy) {
 		$this->flowName = $flowName;
 		$this->emberName = $emberName;
 		$this->flowModelName = $flowModelName;
@@ -20,6 +26,8 @@ class Association {
 		$this->sideload = $sideload;
 		$this->embedded = $embedded;
 		$this->isCollection = $isCollection;
+		$this->inversedBy = $inversedBy;
+		$this->mappedBy = $mappedBy;
 	}
 
 		
@@ -34,10 +42,28 @@ class Association {
 	protected $emberName;
 
 	/**
-	 * Association to which flow model
+	 * Association to which flow model (target)
 	 * @var string
 	 */
 	protected $flowModelName;
+	
+	/**
+	 * Association to which ember model (target)
+	 * @var string 
+	 */
+	protected $emberModelName;
+	
+	/**
+	 * In case of a bi-directional assocation inverse can be defined
+	 * @var string
+	 */
+	protected $inversedBy;
+	
+	/**
+	 * In case of a bi-directional association mapping can be defined
+	 * @var string
+	 */
+	protected $mappedBy;
 	
 	/**
 	 * Type of association in flow
@@ -148,7 +174,32 @@ class Association {
 	public function setFlowModelName($flowModelName) {
 		$this->flowModelName = $flowModelName;
 	}
+	
+	public function getEmberModelName() {
+		return $this->emberModelName;
+	}
 
+	public function setEmberModelName($emberModelName) {
+		$this->emberModelName = $emberModelName;
+	}
+
+	public function getInversedBy() {
+		return $this->inversedBy;
+	}
+
+	public function setInversedBy($inversedBy) {
+		$this->inversedBy = $inversedBy;
+	}
+
+	public function getMappedBy() {
+		return $this->mappedBy;
+	}
+
+	public function setMappedBy($mappedBy) {
+		$this->mappedBy = $mappedBy;
+	}
+
+			
 	public function getFlowType() {
 		return $this->flowType;
 	}
@@ -172,7 +223,7 @@ class Association {
 	public function setIsCollection($isCollection) {
 		$this->isCollection = $isCollection;
 	}
-
+	
 
 }
 ?>

@@ -75,8 +75,8 @@ class GeneratorService {
 		$contextVariables['packageKey'] = $packageKey;
 		$contextVariables['packageNamespace'] = $packageNamespace;
 		$contextVariables['packageName'] = $packageName;
-		$contextVariables['appRoute'] = '{@package}';
-		$contextVariables['restRoute'] = '{@package}' . '/rest'; 
+		$contextVariables['appRoute'] = $packageKey;
+		$contextVariables['restRoute'] = $packageKey . '/rest'; 
 		$contextVariables['restController'] = $package->getNamespace() . '\Controller\EpfRestController';
 		$fileContent = $this->renderTemplate($templatePathAndFilename, $contextVariables);
 
@@ -189,17 +189,17 @@ class GeneratorService {
 		$templatePathAndFilename = 'resource://Mmitasch.Flow4ember/Private/Generator/Epf/Script/store.js.tmpl';
 		$package = $this->packageManager->getPackage($packageKey);
 		$config = $this->configurationManager->getConfiguration('Ember');
-		
+
 		$tokens = explode('.', $packageKey);
 		$packageNamespace = trim($tokens[0]);
 		$packageName = trim($tokens[1]);
-		$restNamespace = '';
+		$restRoute = '';
 		$emberNamespace = '';
 		
 		if (isset($config[$packageNamespace][$packageName]['restNamespace']) && !empty($config[$packageNamespace][$packageName]['restNamespace'])) {
-			$restNamespace = $config[$packageNamespace][$packageName]['restNamespace'];
+			$restRoute = $config[$packageNamespace][$packageName]['restNamespace'];
 		} else {
-			$restNamespace = $packageKey . '/rest';
+			$restRoute = $packageKey . '/rest';
 		}		
 		if (isset($config[$packageNamespace][$packageName]['emberNamespace']) && !empty($config[$packageNamespace][$packageName]['emberNamespace'])) {
 			$emberNamespace = $config[$packageNamespace][$packageName]['emberNamespace'];
@@ -207,7 +207,10 @@ class GeneratorService {
 			$emberNamespace = 'App';
 		}			
 		
-		$contextVariables = array('restNamespace' => $restNamespace, 'emberNamespace' => $emberNamespace);
+		$contextVariables = array(
+			'restRoute' => $restRoute, 
+			'emberNamespace' => $emberNamespace
+		);
 		$fileContent = $this->renderTemplate($templatePathAndFilename, $contextVariables, TRUE);
 
 		$targetFilename = 'store.js';
@@ -551,7 +554,7 @@ class GeneratorService {
 	}
 	
 	/**
-	 * Generates the StandardController for the given package key
+	 * Generates the AppController and ApiController for the given package key
 	 * 
 	 * Generates StandardController.php into Classes/Controller/
 	 * and needed Fluid Templates and Layouts into Resources/Private
@@ -560,18 +563,25 @@ class GeneratorService {
 	 * @param boolean $overwrite Overwrite any existing files?
 	 * @return array An array of generated filenames
 	 */
-	public function generateStandardController($packageKey, $overwrite = FALSE) {
+	public function generateAppAndApiController($packageKey, $overwrite = FALSE) {
 		$package = $this->packageManager->getPackage($packageKey);
 		$thisPackageKey = \Mmitasch\Flow4ember\Utility\NamingUtility::extractPackageKey(get_class($this));
 		$thisPackage = $this->packageManager->getPackage($thisPackageKey);
 		
-		$fileName = 'StandardController.php';
+		$fileName = 'AppController.php';
 		$sourcePathAndFilename = $thisPackage->getClassesNamespaceEntryPath() . 'Controller/' . $fileName;
 		$targetPathAndFilename = $package->getClassesNamespaceEntryPath() . 'Controller/' . $fileName;
 		
 		$fileContent = file_get_contents($sourcePathAndFilename);
 		$fileContent = str_replace('Mmitasch\\Flow4ember\\Controller', $package->getNamespace() . '\Controller', $fileContent);
-
+		$this->generateFile($targetPathAndFilename, $fileContent, $overwrite);
+		
+		$fileName = 'ApiController.php';
+		$sourcePathAndFilename = $thisPackage->getClassesNamespaceEntryPath() . 'Controller/' . $fileName;
+		$targetPathAndFilename = $package->getClassesNamespaceEntryPath() . 'Controller/' . $fileName;
+		
+		$fileContent = file_get_contents($sourcePathAndFilename);
+		$fileContent = str_replace('Mmitasch\\Flow4ember\\Controller', $package->getNamespace() . '\Controller', $fileContent);
 		$this->generateFile($targetPathAndFilename, $fileContent, $overwrite);
 
 		$sourcePath = $thisPackage->getResourcesPath() . 'Private/Generator/General/Layouts';

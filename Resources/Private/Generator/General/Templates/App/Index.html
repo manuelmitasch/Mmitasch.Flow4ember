@@ -1,0 +1,22 @@
+<f:layout name="Default" />
+
+<f:section name="Title">Index view of Standard controller</f:section>
+
+<f:section name="Head">
+    <!-- Bootstrap core CSS -->
+    <link href="{f:uri.resource(path: 'Css/Vendor/bootstrap.css')}" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link href="{f:uri.resource(path: 'Css/default.css')}" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="Script/Vendor/html5shiv.js"></script>
+      <script src="Script/Vendor/respond.min.js"></script>
+    <![endif]-->	
+</f:section>
+
+<f:section name="Content">
+	<f:for each="{javascriptResources}" as="resource">
+		<script src="{f:uri.resource(path: resource)}"></script>	
+	</f:for>
+</f:section>

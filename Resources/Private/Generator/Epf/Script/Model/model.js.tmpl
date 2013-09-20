@@ -1,3 +1,6 @@
 #{model.emberName}#.reopen({
 <f:for each="#{model.properties}#" as="property">  #{property.name}#: Ep.attr('#{property.converter.emberType}#'),
-</f:for>});
+</f:for>
+<f:for each="#{model.associations}#" as="association">  #{association.emberName}#: Ep.#{association.emberType}#(#{association.emberModelName}#<f:if condition="#{association.mappedBy}#">, { inverse: '#{association.mappedBy}#'}</f:if>),
+</f:for>
+});

@@ -66,7 +66,7 @@ class EmberCommandController extends \TYPO3\Flow\Cli\CommandController {
 	public function configCommand($packageKey, $force = FALSE) {
 		$this->checkPackage($packageKey);
 				
-		$this->outputLine("<b>## GENERATING CONFIGURATION FILES (EMBER.YAML, ROUTES.YAML) ##</b>");
+		$this->outputHeading("GENERATING CONFIGURATION FILES (EMBER.YAML, ROUTES.YAML)");
 		$generatedFiles = $this->generatorService->generateEmberConfig($packageKey, $force);
 		$this->outputLine(implode(PHP_EOL, $generatedFiles));
 
@@ -86,7 +86,7 @@ class EmberCommandController extends \TYPO3\Flow\Cli\CommandController {
 	public function appCommand($packageKey, $force = FALSE) {
 		$this->checkPackage($packageKey);
 				
-		$this->outputLine("<b>## GENERATING APP FILES (APP.JS, STORE.JS, ROUTER.JS) ##</b>");
+		$this->outputHeading("GENERATING APP FILES (APP.JS, STORE.JS, ROUTER.JS)");
 		$generatedFiles = array();
 		$generatedFiles += $this->generatorService->generateApp($packageKey, $force);
 		$generatedFiles += $this->generatorService->generateStore($packageKey, $force);
@@ -107,7 +107,7 @@ class EmberCommandController extends \TYPO3\Flow\Cli\CommandController {
 	public function modelCommand($packageKey, $force = FALSE) {
 		$this->checkPackage($packageKey);
 		
-		$this->outputLine("<b>## GENERATING TEMPLATES FILES ##</b>");
+		$this->outputHeading("GENERATING TEMPLATES FILES");
 		$generatedFiles = $this->generatorService->generateModels($packageKey, $force);
 		$this->outputParagraph(implode(PHP_EOL, $generatedFiles));
 	}
@@ -124,7 +124,7 @@ class EmberCommandController extends \TYPO3\Flow\Cli\CommandController {
 	public function controllerCommand($packageKey, $force = FALSE) {
 		$this->checkPackage($packageKey);
 		
-		$this->outputLine("<b>## GENERATING CONTROLLERS FILES ##</b>");
+		$this->outputHeading("GENERATING CONTROLLERS FILES");
 		$generatedFiles = $this->generatorService->generateControllers($packageKey, $force);
 		$this->outputParagraph(implode(PHP_EOL, $generatedFiles));
 	}
@@ -141,7 +141,7 @@ class EmberCommandController extends \TYPO3\Flow\Cli\CommandController {
 	public function viewCommand($packageKey, $force = FALSE) {
 		$this->checkPackage($packageKey);
 		
-		$this->outputLine("<b>## GENERATING VIEW FILES ##</b>");
+		$this->outputHeading("GENERATING VIEW FILES</b>");
 		$generatedFiles = $this->generatorService->generateViews($packageKey, $force);
 		$this->outputParagraph(implode(PHP_EOL, $generatedFiles));
 	}
@@ -158,7 +158,7 @@ class EmberCommandController extends \TYPO3\Flow\Cli\CommandController {
 	public function templateCommand($packageKey, $force = FALSE) {
 		$this->checkPackage($packageKey);
 
-		$this->outputLine("<b>## GENERATING TEMPLATE FILES ##</b>");
+		$this->outputHeading("GENERATING TEMPLATE FILES");
 		$generatedFiles = $this->generatorService->generateTemplates($packageKey, $force);
 		$this->outputLine(implode(PHP_EOL, $generatedFiles));
 		$this->outputParagraph("<b>## DONT'T FORGET TO BUILD YOUR TEMPLATES! ##</b>");
@@ -176,7 +176,7 @@ class EmberCommandController extends \TYPO3\Flow\Cli\CommandController {
 	public function routeCommand($packageKey, $force = FALSE) {
 		$this->checkPackage($packageKey);
 		
-		$this->outputLine("<b>## GENERATING ROUTES FILES ##</b>");
+		$this->outputHeading("GENERATING ROUTES FILES");
 		$generatedFiles = $this->generatorService->generateRoutes($packageKey, $force);
 		$this->outputParagraph(implode(PHP_EOL, $generatedFiles));
 	}
@@ -193,7 +193,7 @@ class EmberCommandController extends \TYPO3\Flow\Cli\CommandController {
 	public function routerCommand($packageKey, $force = FALSE) {
 		$this->checkPackage($packageKey);
 		
-		$this->outputLine("<b>## GENERATING ROUTER.JS ##</b>");
+		$this->outputHeading("GENERATING ROUTER.JS");
 		$generatedFiles = $this->generatorService->generateRouter($packageKey, $force);
 		$this->outputParagraph(implode(PHP_EOL, $generatedFiles));
 	}
@@ -210,7 +210,7 @@ class EmberCommandController extends \TYPO3\Flow\Cli\CommandController {
 	public function staticCommand($packageKey, $force = FALSE) {
 		$this->checkPackage($packageKey);
 				
-		$this->outputLine("<b>## COPYING STATIC ASSETS ##</b>");
+		$this->outputHeading("COPYING STATIC ASSETS");
 		$generatedFiles = $this->generatorService->generateStatic($packageKey, $force);
 		$this->outputParagraph(implode(PHP_EOL, $generatedFiles));
 	}
@@ -230,15 +230,15 @@ class EmberCommandController extends \TYPO3\Flow\Cli\CommandController {
 	public function flowCommand($packageKey, $force = FALSE) {
 		$this->checkPackage($packageKey);
 				
-		$this->outputLine("<b>## GENERATING REST CONTROLLER FILE ##</b>");
+		$this->outputHeading("GENERATING REST CONTROLLER FILE");
 		$generatedFiles = $this->generatorService->generateRestController($packageKey, $force);
 		$this->outputParagraph(implode(PHP_EOL, $generatedFiles) . '');
 
-		$this->outputLine("<b>## GENERATING STANDARD CONTROLLER FILES ##</b>");
-		$generatedFiles = $this->generatorService->generateStandardController($packageKey, $force);
+		$this->outputHeading("GENERATING APP AND API FLOW CONTROLLER FILES");
+		$generatedFiles = $this->generatorService->generateAppAndApiController($packageKey, $force);
 		$this->outputParagraph(implode(PHP_EOL, $generatedFiles));
 		
-		$this->outputLine("<b>## GENERATING ROUTE PART FILE ##</b>");
+		$this->outputHeading("GENERATING ROUTE PART FILE");
 		$generatedFiles = $this->generatorService->generateRoutePart($packageKey, $force);
 		$this->outputParagraph(implode(PHP_EOL, $generatedFiles));
 	}
@@ -257,7 +257,7 @@ class EmberCommandController extends \TYPO3\Flow\Cli\CommandController {
 		$this->checkPackage($packageKey);
 		$package = $this->packageManager->getPackage($packageKey);
 
-		$this->outputLine("<b>## RUNNING NPM INSTALL ##</b>");
+		$this->outputHeading("RUNNING NPM INSTALL");
 		$this->outputParagraph(exec('(cd ' . $package->getPackagePath() . ' && sudo npm install)'));
 	}
 	
@@ -274,7 +274,7 @@ class EmberCommandController extends \TYPO3\Flow\Cli\CommandController {
 		$this->checkPackage($packageKey);
 		$package = $this->packageManager->getPackage($packageKey);
 
-		$this->outputLine("<b>## RUNNING GRUNT TEMPLATE BUILD TASK ##</b>");
+		$this->outputHeading("RUNNING GRUNT TEMPLATE BUILD TASK");
 		$this->outputParagraph(exec('(cd ' . $package->getPackagePath() . ' && grunt emberTemplates)'));
 	}
 	
@@ -316,6 +316,20 @@ class EmberCommandController extends \TYPO3\Flow\Cli\CommandController {
 	 */
 	protected function outputParagraph($text = '', array $arguments = array()) {
 		$this->output($text . PHP_EOL . PHP_EOL, $arguments);
+	}
+	
+	/**
+	 * Outputs specified text to the console window and appends a divider line
+	 *
+	 * @param string $text Text to output
+	 * @param array $arguments Optional arguments to use for sprintf
+	 * @return void
+	 * @see output()
+	 * @see outputLines()
+	 */
+	protected function outputHeading($text = '', array $arguments = array()) {
+		$this->outputLine('<b>' . $text . '</b>', $arguments);
+		$this->outputLine("-------------------------------------------------------------------------------", $arguments);
 	}
 }
 ?>

@@ -2,15 +2,15 @@
 <html>
 	<head>
 		<meta charset="utf-8">
+	    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title><f:render section="Title" /></title>
+		
 		<f:base />
-		<link href="{f:uri.resource(path: 'Css/bootstrap.min.css')}" rel="stylesheet" />
+		<f:render section="Head" />
 	</head>
 	<body>
 		<f:flashMessages class="flashmessages" />
 
-		<div class="container">
-			<f:render section="Content" />
-		</div>
+		<f:render section="Content" />
 	</body>
 </html>

@@ -34,7 +34,8 @@
         </tr></f:for><f:for each="#{model.associations}#" as="association">
         <tr>
         	<th>#{association.emberNameCapitalized}#</th>
-        	<td>{{#each model in #{association.emberName}# }}{{model.id}}{{/each}}</td>
+        	<td><f:if condition="#{association.emberType}# == 'hasMany'"><f:then>{{#each child in #{association.emberName}# }}{{child.id}}, {{/each}}</f:then>
+				<f:else>{{#{association.emberName}#.id}}</f:else></f:if></td>
         </tr></f:for>
     </tbody>
 </table>

@@ -245,7 +245,7 @@ class EpfSerializer implements SerializerInterface {
 			
 			$this->systemLogger->log("Payload name: " . $associationPayloadName, LOG_INFO); // TODO remove
 
-			if(array_key_exists($associationPayloadName, $data)) {
+			if(isset($data['associationPayloadName']) && $data['associationPayloadName'] !== NULL) {
 				$result[$association->getFlowName()] = $data[$associationPayloadName];
 			}
 		}

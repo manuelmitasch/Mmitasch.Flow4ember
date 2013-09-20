@@ -73,6 +73,19 @@ class ModelReflectionService implements ModelReflectionServiceInterface {
 			}
 		}
 		
+			// set emberModelType on association (after all models are loaded)
+		foreach ($this->metaModels as $packageKey => $metaModels) {
+			foreach ($metaModels as $metaModel) {
+				if (is_array($metaModel->getAssociations())) {
+					foreach ($metaModel->getAssociations()as $association) {
+						$targetFlowModelName = $association->getFlowModelName();
+						$targetMetaModel = $this->findByFlowModelName($targetFlowModelName, $packageKey);
+						$association->setEmberModelName($targetMetaModel->getEmberName());
+					}
+				}
+			}
+		}
+		
 //		$this->dumpModels(); // TODO: remove
 	}
 	

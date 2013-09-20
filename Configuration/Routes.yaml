@@ -3,6 +3,6 @@
   uriPattern: '{@package}/rest'
   defaults:
     '@package': 'Mmitasch.Flow4ember'
-    '@controller': 'Standard'
-    '@action': 'api'
+    '@controller': 'Api'
+    '@action': 'index'
     '@format': 'html'
