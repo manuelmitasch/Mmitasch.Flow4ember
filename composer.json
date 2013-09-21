@@ -1,8 +1,16 @@
 {
-    "name": "mmitasch\/flow4ember",
+    "name": "mmitasch/flow4ember",
     "type": "typo3-flow-package",
-    "description": "TYPO3 Flow meets Ember through conventions",
-    "version": "0.0.1",
+    "description": "TYPO3 Flow meets Ember.",
+	"keywords": ["typo3","flow","ember","ember.js","EPF","persistence","REST"],
+    "homepage": "https://github.com/manuelmitasch/Mmitasch.Flow4ember",
+	"license": ["LGPL-3.0+"],
+	"authors": [
+        {
+            "name": "Manuel Mitasch",
+            "role": "Developer"
+        }
+    ],
     "require": {
         "typo3\/flow":"*"
     },
