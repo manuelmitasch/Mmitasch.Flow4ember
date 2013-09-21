@@ -19,18 +19,19 @@ Quickstart
 ==========
 * Do all the boring setup stuff and create a new Flow package with domain models
 * Add the Ember.Resource Annotation to the models for which a REST API endpoint should be provided
-* Kickstart the full CRUD app through
-	``./flow ember:all YourCompany.PackageName``
+* Kickstart the full CRUD app through: ``./flow ember:all YourCompany.PackageName``
 * Be happy!
 
 
 Which Ember persistence layers are supported?
 =============================================
 The current REST implementation (EpfRestController + EpfSerializer) supports:
+
 * EPF (Ember Persistence Foundation)
 * Ember Data (up to version 0.13)
 
 The scaffolding mechanism supports:
+
 * EPF only
   
 In the future we plan to support current Ember Data and JSON API formats for the REST API. The possibilities for Ember Data scaffolding will be investigated.
