@@ -428,7 +428,7 @@ class GeneratorService {
 			$contextVariables = array('model' => $metaModel);
 			$fileContent = $this->renderTemplate($templatePathAndFilename, $contextVariables, TRUE);
 			
-			$targetFilename = '_' . $metaModel->getResourceName() . '/new.hbs';
+			$targetFilename = $metaModel->getResourceName() . '/new.hbs';
 			$targetPathAndFilename = $targetPath . $targetFilename;
 				// generate models index template
 			$this->generateFile($targetPathAndFilename, $fileContent, $overwrite);
