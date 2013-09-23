@@ -19,23 +19,6 @@ namespace Mmitasch\Flow4ember\Annotations;
  * @Target("CLASS")
  */
 final class Resource {
-
-	/**
-	 * Custom resourcename
-	 * @var string
-	 */
-	public $name;
-	
-	
-	/**
-	 * Get custom resourcename 
-	 * @return string
-	 */
-	public function getName() {
-		return $this->name;
-	}
-
-
 }
 
 ?>

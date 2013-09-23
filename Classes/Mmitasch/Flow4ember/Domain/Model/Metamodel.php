@@ -74,16 +74,8 @@ class Metamodel {
 		}
 				
 		// set resource name
-		if ($resourceAnnotation !== NULL && $resourceAnnotation->getName() !== NULL && !isset($this->config['resourceName'])) {
-			$this->resourceName = $resourceAnnotation->getName(); // set from Annotation
-			$this->customResourceName = true;
-		} elseif (isset($this->config['resourceName'])) {
-			$this->resourceName = $this->config['resourceName']; // set from Ember.yaml
-			$this->customResourceName = true;
-		} else {
-			$this->resourceName = NamingUtility::pluralize($this->getModelNameLowercased());
-			$this->customResourceName = false;
-		}
+		$this->resourceName = NamingUtility::pluralize($this->getModelNameLowercased());
+		$this->customResourceName = false;
 
 		// set repository if exists
 		$repositoryName = str_replace(array('\\Model\\'), array('\\Repository\\'), $this->flowName) . 'Repository';
