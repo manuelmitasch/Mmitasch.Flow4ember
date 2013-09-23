@@ -9,38 +9,39 @@ http://docs.typo3.org/flow/TYPO3FlowDocumentation/Quickstart/Index.html
 
 Create a new package
 ====================
-Use the package:create command of the Flow command line tool (inside your flow root directory):
+Use the package:create command of the Flow command line tool (inside your flow root directory): ::
 
-	* ``./flow package:create YourCompany.PackageName``
+	./flow package:create YourCompany.PackageName
 
 
 Create some domain models
 =========================
-You can kickstart Flow domain models with the kickstart:model command:
+You can kickstart Flow domain models with the kickstart:model command: ::
 
-	* ``./flow kickstart:model YourCompany.PackageName Person "name:string"``
+	./flow kickstart:model YourCompany.PackageName Person "name:string"
 
 Don't forget to update the databse schema with the respective doctrine:* commands (doctrine:update does the trick in development context).
 
-If you want to provide a REST API endpoint for the model you also need to create a repository for this model: 
+If you want to provide a REST API endpoint for the model you also need to create a repository for this model: ::
 
-	* ``./flow kickstart:repository YourCompany.PackageName Person
+	./flow kickstart:repository YourCompany.PackageName Person
 
 
 Install this package
 ====================
 * Clone this repositor into your <flow-root>/Packages/Application folder ::
+
 	git clone https://github.com/manuelmitasch/Mmitasch.Flow4ember.git
 
 * You should also add the package to your ``composer.json`` dependencies::
   
   	{
-	   	"require": {
-	       	"mmitasch\/flow4ember": "dev-master",
-	   	}
+	  "require": {
+	    "mmitasch\/flow4ember": "dev-master",
+	  }
 	}
 
-Note: As the package is not yet released as a stable version to ``packagist <https://packagist.org/>``_ you need to specify "dev-master" as the version.
+Note: As the package is not yet released as a stable version to `packagist <https://packagist.org/>`_ you need to specify "dev-master" as the version.
 
 
 Configure Models
@@ -50,25 +51,30 @@ There are two ways to declare a Flow domain model as a Ember model:
 1. Annotations
 
 	* Adding a Ember.Resource annotation before the class defintion will provide a REST API endpoint for this model. When scaffolding the ember model it will be included.  ::
+
 		 /**
 		  * @Ember\Resource
 		  */
+
 	* Adding a Ember.Model annotation will NOT provide a REST API endpoint for this model. When scaffolding the ember model it will be included. 
+
 	* Note: In order to be able to use the Ember.* annotations you need to import the Annotations namespace before your class definition with: ::
+	
 		use Mmitasch\Flow4ember\Annotations as Ember;
+
 
 2. Configuration in Ember.yaml
 
-	* You can kickstart a basic Ember.yaml file via the command line tool.
+	* You can kickstart a basic Ember.yaml file via the command line tool. ::
 
-			``./flow ember:config YourCompany.PackageName``
+			./flow ember:config YourCompany.PackageName
 
 	* In the models section you can add your Flow models (fully qualified class names) ::
 
-			 YourCompany:
-			   PackageName:
-			     models:
-			       'YourCompany\PackageName\Domain\Model\Person'
+			YourCompany:
+			  PackageName:
+			    models:
+			      'YourCompany\PackageName\Domain\Model\Person'
 
 The configuration in Ember.yaml overrides possible values from annotations.
 See the Configuration section for detailed confiuration options.
@@ -95,9 +101,10 @@ Add the following configuration snippet to your Flow Routes configuration at <fl
 Scaffold the CRUD app
 =====================
 
-You can kickstart a full Ember based CRUD app through the command line tool
+You can kickstart a full Ember based CRUD app through the command line tool ::
 
-	* ``./flow ember:all YourCompany.PackageName``
+	./flow ember:all YourCompany.PackageName
+	
 
 See the Command section for detailed description of available commands. Or use the help command through ``./flow help command:foo``. 
 

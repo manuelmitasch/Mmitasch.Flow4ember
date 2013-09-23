@@ -14,7 +14,7 @@ There are two ways to configure your package:
 Annotations
 ===========
 
-You can use Annotation classes to configure your Flow domain models. Simply add the namespace before your class definition. ::
+You can use annotations to configure your Flow domain models. First, you simply need to add the namespace before your class definition. ::
 
 	 use Mmitasch\Flow4ember\Annotations as Ember; 
 

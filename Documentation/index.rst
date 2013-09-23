@@ -76,5 +76,6 @@ Roadmap
 * Merge strategies for kickstart commands
 * Proper Test Coverage
 * Refactor of property mapping and persisting strategy
+
 	* support more association types
 	* possibility to save OneToMany Association from the One (parent) side (currently due to doctrine internals only possible through Many [child] side generically; currently this is no problem as EPF expects the same behavior; but it would be great to be able to do it from both association sides)
