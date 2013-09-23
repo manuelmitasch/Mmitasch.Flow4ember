@@ -29,6 +29,7 @@ Quickstart
 
 Which Ember persistence layers are supported?
 =============================================
+
 The current REST implementation (EpfRestController + EpfSerializer) supports:
 
 * **EPF** (Ember Persistence Foundation)
@@ -43,6 +44,7 @@ In the future we plan to support current Ember Data and JSON API formats for the
 
 More documentation
 ==================
+
 Check out the other documentations on:
 
 * **Getting Started:** Step by step instructions how to start a project based on this package.
@@ -53,6 +55,7 @@ Check out the other documentations on:
 
 Current Limitations
 ===================
+
 Currently only the following model associations are supported:
 
     * Uni-directional OneToOne 
@@ -65,6 +68,7 @@ The other limitations have to do with the way doctrine enables persisting of mor
 
 Roadmap
 =======
+
 * Better error handling (instead of throwing exceptions return json format with errors that could be used by the Ember app)
 * Wildcard model config
 * Enable custom ember model names to enable Flow model with the same name from different namespaces. Omit duplicate model names.
