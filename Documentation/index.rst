@@ -4,7 +4,7 @@ TYPO3 Flow meets Ember.js
 
 This package provides an easy way to implement a web application that uses TYPO3 Flow (php framework) as your server backend and Ember.js as your frontend. It mainly provides you with two major features:
 
-* Super fast way to create a REST API  
+* Super fast way to create a REST API (that complies to Ember conventions)
 
 	* by adding annotations to the respective Flow domain models or 
 	* by adding the model to the Ember.yaml configuration file
@@ -17,10 +17,13 @@ This package provides an easy way to implement a web application that uses TYPO3
 
 Quickstart
 ==========
-* Do all the boring setup stuff and create a new Flow package with domain models
+* Do all the `Flow setup stuff <http://docs.typo3.org/flow/TYPO3FlowDocumentation/Quickstart/Index.html>`_ and create a new Flow package with domain models
+* Add this package to your package's composer dependencies (package name: mmitasch/flow4ember) and install it. 
 * Add the Ember.Resource Annotation to the models for which a REST API endpoint should be provided
 * Kickstart the full CRUD app through: ``./flow ember:all YourCompany.PackageName``
 * Be happy!
+
+**Checkout the Getting Started guide for a more detailed description.**
 
 
 Which Ember persistence layers are supported?
@@ -37,4 +40,13 @@ The scaffolding mechanism supports:
 In the future we plan to support current Ember Data and JSON API formats for the REST API. The possibilities for Ember Data scaffolding will be investigated.
 
 
+More documentation
+==================
 
+
+Current Limitations
+===================
+
+
+Roadmap
+=======
