@@ -258,7 +258,7 @@ class EmberCommandController extends \TYPO3\Flow\Cli\CommandController {
 		$package = $this->packageManager->getPackage($packageKey);
 
 		$this->outputHeading("RUNNING NPM INSTALL");
-		$this->outputParagraph(exec('(cd ' . $package->getPackagePath() . ' && sudo npm install)'));
+		$this->outputParagraph(exec('(cd ' . $package->getPackagePath() . ' && npm install)'));
 	}
 	
 	/**
