@@ -21,7 +21,13 @@
       </td>
       <td>{{#{model.modelNameLowercased}#.id}}</td><f:for each="#{model.properties}#" as="property">
       <td>{{#{model.modelNameLowercased}#.#{property.name}#}}</td></f:for><f:for each="#{model.associations}#" as="association">
-      <td><f:if condition="#{0: '#{association.emberType}#'}# == #{0: 'hasMany'}#"><f:then>{{#each child in #{model.modelNameLowercased}#.#{association.emberName}# }}{{child.id}}, {{/each}}</f:then><f:else>{{#{model.modelNameLowercased}#.#{association.emberName}#.id}}</f:else></f:if></td></f:for>
+      <td><f:if condition="#{0: '#{association.emberType}#'}# == #{0: 'hasMany'}#"><f:then>
+        {{#each child in #{model.modelNameLowercased}#.#{association.emberName}# }}
+          {{#link-to "#{association.metamodel.modelNameLowercased}#" child}}{{child.id}}{{/link-to}}, 
+        {{/each}}</f:then>
+			<f:else>
+        {{#link-to "#{association.metamodel.modelNameLowercased}#" #{model.modelNameLowercased}#.#{association.emberName}#}} {{#{model.modelNameLowercased}#.#{association.emberName}#.id}} {{/link-to}}</f:else></f:if>
+      </td></f:for>
     </tr>
     {{/each}}
   </tbody>

@@ -42,16 +42,15 @@ class Association {
 	protected $emberName;
 
 	/**
-	 * Association to which flow model (target)
 	 * @var string
 	 */
 	protected $flowModelName;
 	
 	/**
-	 * Association to which ember model (target)
-	 * @var string 
+	 * Metamodel of associated model
+	 * @var \Mmitasch\Flow4ember\Domain\Model\Metamodel 
 	 */
-	protected $emberModelName;
+	protected $metaModel;
 	
 	/**
 	 * In case of a bi-directional assocation inverse can be defined
@@ -171,18 +170,24 @@ class Association {
 		return $this->flowModelName;
 	}
 
-	public function setFlowModelName($flowModelName) {
-		$this->flowModelName = $flowModelName;
+	public function getEmberModelName() {
+		return $this->metaModel->getEmberName();
+	}
+
+	/**
+	 * @return \Mmitasch\Flow4ember\Domain\Model\Metamodel 
+	 */
+	public function getMetaModel() {
+		return $this->metaModel;
 	}
 	
-	public function getEmberModelName() {
-		return $this->emberModelName;
+	/**
+	 * @param \Mmitasch\Flow4ember\Domain\Model\Metamodel  $metaModel
+	 */
+	public function setMetaModel($metaModel) {
+		$this->metaModel = $metaModel;
 	}
-
-	public function setEmberModelName($emberModelName) {
-		$this->emberModelName = $emberModelName;
-	}
-
+	
 	public function getInversedBy() {
 		return $this->inversedBy;
 	}

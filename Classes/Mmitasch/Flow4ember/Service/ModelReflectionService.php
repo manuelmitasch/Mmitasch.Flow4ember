@@ -80,7 +80,7 @@ class ModelReflectionService implements ModelReflectionServiceInterface {
 					foreach ($metaModel->getAssociations()as $association) {
 						$targetFlowModelName = $association->getFlowModelName();
 						$targetMetaModel = $this->findByFlowModelName($targetFlowModelName, $packageKey);
-						$association->setEmberModelName($targetMetaModel->getEmberName());
+						$association->setMetaModel($targetMetaModel);
 					}
 				}
 			}
