@@ -241,11 +241,9 @@ class EpfSerializer implements SerializerInterface {
 		foreach ((array) $metaModel->getAssociations() as $association) {
 			$associationPayloadName = $this->getPayloadName($association->getEmberName(), $association->getEmberType());
 			$this->systemLogger->log("Association: " . $association->getEmberName() . "; PayloadName: " . $associationPayloadName . "; Type: " . $association->getEmberType(), LOG_INFO);
-
-			
 			$this->systemLogger->log("Payload name: " . $associationPayloadName, LOG_INFO); // TODO remove
-
-			if(isset($data['associationPayloadName']) && $data['associationPayloadName'] !== NULL) {
+			
+			if(isset($data[$associationPayloadName]) && $data[$associationPayloadName] !== NULL) {
 				$result[$association->getFlowName()] = $data[$associationPayloadName];
 			}
 		}
