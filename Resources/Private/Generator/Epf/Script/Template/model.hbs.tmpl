@@ -30,7 +30,7 @@
         </tr><f:for each="#{model.properties}#" as="property">
         <tr>
         	<th>#{property.nameCapitalized}#</th>
-           	<td>{{name}}</td>
+           	<td>{{#{property.name}#}}</td>
         </tr></f:for><f:for each="#{model.associations}#" as="association">
         <tr>
         	<th>#{association.emberNameCapitalized}#</th>
