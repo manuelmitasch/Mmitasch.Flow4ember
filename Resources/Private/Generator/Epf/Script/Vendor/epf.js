@@ -51,10 +51,9 @@
         }();
     require.define('/lib/index.js', function (module, exports, __dirname, __filename) {
         require('/vendor/ember-inflector.js', module);
-        Ember.Inflector.loadAll();
         global.Ep = Ember.Namespace.create();
         require('/lib/version.js', module);
-        require('/lib/initializer.js', module);
+        require('/lib/initializers.js', module);
         require('/lib/model/index.js', module);
         require('/lib/session/index.js', module);
         require('/lib/serializer/index.js', module);
@@ -2355,7 +2354,7 @@
         var get = Ember.get, set = Ember.set, merge = Ember.merge;
         function mustImplement(name) {
             return function () {
-                throw new Ember.Error('Your serializer ' + this.toString() + ' does not implement the required method ' + name);
+                throw new Ember.Error('Your adapter ' + this.toString() + ' does not implement the required method ' + name);
             };
         }
         var uuid = 1;
@@ -2486,42 +2485,49 @@
                     return null;
                 }
             },
-            serialize: function (date) {
-                if (date instanceof Date) {
-                    var days = [
-                            'Sun',
-                            'Mon',
-                            'Tue',
-                            'Wed',
-                            'Thu',
-                            'Fri',
-                            'Sat'
-                        ];
-                    var months = [
-                            'Jan',
-                            'Feb',
-                            'Mar',
-                            'Apr',
-                            'May',
-                            'Jun',
-                            'Jul',
-                            'Aug',
-                            'Sep',
-                            'Oct',
-                            'Nov',
-                            'Dec'
-                        ];
-                    var pad = function (num) {
-                        return num < 10 ? '0' + num : '' + num;
-                    };
-                    var utcYear = date.getUTCFullYear(), utcMonth = date.getUTCMonth(), utcDayOfMonth = date.getUTCDate(), utcDay = date.getUTCDay(), utcHours = date.getUTCHours(), utcMinutes = date.getUTCMinutes(), utcSeconds = date.getUTCSeconds();
-                    var dayOfWeek = days[utcDay];
-                    var dayOfMonth = pad(utcDayOfMonth);
-                    var month = months[utcMonth];
-                    return dayOfWeek + ', ' + dayOfMonth + ' ' + month + ' ' + utcYear + ' ' + pad(utcHours) + ':' + pad(utcMinutes) + ':' + pad(utcSeconds) + ' GMT';
-                } else {
-                    return null;
+            serialize: function (unserialized) {
+                var type = typeof unserialized, date = null;
+                if (unserialized instanceof Date) {
+                    date = unserialized;
+                } else if (type === 'string') {
+                    date = new Date(Ember.Date.parse(unserialized));
+                } else if (type === 'number') {
+                    date = new Date(unserialized);
                 }
+                return date !== null ? this._serialize(date) : null;
+            },
+            _serialize: function (date) {
+                var days = [
+                        'Sun',
+                        'Mon',
+                        'Tue',
+                        'Wed',
+                        'Thu',
+                        'Fri',
+                        'Sat'
+                    ];
+                var months = [
+                        'Jan',
+                        'Feb',
+                        'Mar',
+                        'Apr',
+                        'May',
+                        'Jun',
+                        'Jul',
+                        'Aug',
+                        'Sep',
+                        'Oct',
+                        'Nov',
+                        'Dec'
+                    ];
+                var pad = function (num) {
+                    return num < 10 ? '0' + num : '' + num;
+                };
+                var utcYear = date.getUTCFullYear(), utcMonth = date.getUTCMonth(), utcDayOfMonth = date.getUTCDate(), utcDay = date.getUTCDay(), utcHours = date.getUTCHours(), utcMinutes = date.getUTCMinutes(), utcSeconds = date.getUTCSeconds();
+                var dayOfWeek = days[utcDay];
+                var dayOfMonth = pad(utcDayOfMonth);
+                var month = months[utcMonth];
+                return dayOfWeek + ', ' + dayOfMonth + ' ' + month + ' ' + utcYear + ' ' + pad(utcHours) + ':' + pad(utcMinutes) + ':' + pad(utcSeconds) + ' GMT';
             }
         });
     });
@@ -2842,6 +2848,7 @@
         require('/lib/model/index.js', module);
         require('/lib/session/merge_strategies/index.js', module);
         var get = Ember.get, set = Ember.set;
+        Ep.PromiseArray = Ember.ArrayProxy.extend(Ember.PromiseProxyMixin);
         Ep.Session = Ember.Object.extend({
             mergeStrategy: Ep.PerField,
             _dirtyCheckingSuspended: false,
@@ -2982,17 +2989,18 @@
                     type = this.lookupType(type);
                 }
                 var session = this;
-                return this.adapter.query(type, query).then(function (models) {
-                    var merged = Ep.ModelArray.create({
-                            session: session,
-                            content: []
+                var prom = this.adapter.query(type, query).then(function (models) {
+                        var merged = Ep.ModelArray.create({
+                                session: session,
+                                content: []
+                            });
+                        set(merged, 'meta', get(models, 'meta'));
+                        models.forEach(function (model) {
+                            merged.pushObject(session.merge(model));
                         });
-                    set(merged, 'meta', get(models, 'meta'));
-                    models.forEach(function (model) {
-                        merged.pushObject(session.merge(model));
+                        return merged;
                     });
-                    return merged;
-                });
+                return Ep.PromiseArray.create({ promise: prom });
             },
             refresh: function (model) {
                 var session = this;
@@ -3302,175 +3310,327 @@
             }
         });
     });
-    require.define('/lib/initializer.js', function (module, exports, __dirname, __filename) {
+    require.define('/lib/initializers.js', function (module, exports, __dirname, __filename) {
         var set = Ember.set;
-        if (Ember.DefaultResolver) {
-            Ember.DefaultResolver.reopen({
-                resolveModel: function (parsedName) {
-                    var className = Ember.String.classify(parsedName.name);
-                    return Ember.get(parsedName.root, className);
-                }
-            });
-        }
+        require('/lib/transforms/index.js', module);
+        require('/lib/debug/index.js', module);
         Ember.onLoad('Ember.Application', function (Application) {
             Application.initializer({
-                name: 'epf',
+                name: 'epf.container',
                 initialize: function (container, application) {
                     Ep.__container__ = container;
-                    application.register('store:main', application.Store || Ep.Store);
                     application.register('adapter:main', application.Adapter || Ep.RestAdapter);
                     application.register('session:base', application.Session || Ep.Session, { singleton: false });
                     application.register('session:child', application.ChildSession || Ep.ChildSession, { singleton: false });
                     application.register('session:main', application.DefaultSession || Ep.Session);
                     application.register('serializer:main', application.Serializer || Ep.RestSerializer);
-                    require('/lib/transforms/index.js', module);
-                    application.register('transform:boolean', Ep.BooleanTransform);
-                    application.register('transform:date', Ep.DateTransform);
-                    application.register('transform:number', Ep.NumberTransform);
-                    application.register('transform:string', Ep.StringTransform);
+                    container.optionsForType('model', { instantiate: false });
+                }
+            });
+            Application.initializer({
+                name: 'epf.injections',
+                initialize: function (container, application) {
                     application.inject('adapter', 'serializer', 'serializer:main');
                     application.inject('session', 'adapter', 'adapter:main');
-                    container.optionsForType('model', { instantiate: false });
                     application.inject('controller', 'adapter', 'adapter:main');
                     application.inject('controller', 'session', 'session:main');
                     application.inject('route', 'adapter', 'adapter:main');
                     application.inject('route', 'session', 'session:main');
+                    application.inject('dataAdapter', 'session', 'session:main');
+                }
+            });
+            Application.initializer({
+                name: 'epf.transforms',
+                initialize: function (container, application) {
+                    application.register('transform:boolean', Ep.BooleanTransform);
+                    application.register('transform:date', Ep.DateTransform);
+                    application.register('transform:number', Ep.NumberTransform);
+                    application.register('transform:string', Ep.StringTransform);
+                }
+            });
+            Application.initializer({
+                name: 'dataAdapter',
+                initialize: function (container, application) {
+                    application.register('dataAdapter:main', Ep.DebugAdapter);
                 }
             });
         });
     });
+    require.define('/lib/debug/index.js', function (module, exports, __dirname, __filename) {
+        require('/lib/debug/debug_info.js', module);
+        require('/lib/debug/debug_adapter.js', module);
+    });
+    require.define('/lib/debug/debug_adapter.js', function (module, exports, __dirname, __filename) {
+        var get = Ember.get, capitalize = Ember.String.capitalize, underscore = Ember.String.underscore;
+        if (Ember.DataAdapter) {
+            var PromiseArray = Ember.ArrayProxy.extend(Ember.PromiseProxyMixin);
+            Ep.DebugAdapter = Ember.DataAdapter.extend({
+                getFilters: function () {
+                    return [
+                        {
+                            name: 'isNew',
+                            desc: 'New'
+                        },
+                        {
+                            name: 'isModified',
+                            desc: 'Modified'
+                        },
+                        {
+                            name: 'isClean',
+                            desc: 'Clean'
+                        }
+                    ];
+                },
+                detect: function (klass) {
+                    return klass !== Ep.Model && Ep.Model.detect(klass);
+                },
+                columnsForType: function (type) {
+                    var columns = [
+                            {
+                                name: 'id',
+                                desc: 'Id'
+                            },
+                            {
+                                name: 'clientId',
+                                desc: 'Client Id'
+                            },
+                            {
+                                name: 'rev',
+                                desc: 'Revision'
+                            },
+                            {
+                                name: 'clientRev',
+                                desc: 'Client Revision'
+                            }
+                        ], count = 0, self = this;
+                    Ember.A(get(type, 'attributes')).forEach(function (name, meta) {
+                        if (count++ > self.attributeLimit) {
+                            return false;
+                        }
+                        var desc = capitalize(underscore(name).replace('_', ' '));
+                        columns.push({
+                            name: name,
+                            desc: desc
+                        });
+                    });
+                    return columns;
+                },
+                getRecords: function (type) {
+                    return PromiseArray.create({ promise: this.get('session').query(type) });
+                },
+                getRecordColumnValues: function (record) {
+                    var self = this, count = 0, columnValues = { id: get(record, 'id') };
+                    record.eachAttribute(function (key) {
+                        if (count++ > self.attributeLimit) {
+                            return false;
+                        }
+                        var value = get(record, key);
+                        columnValues[key] = value;
+                    });
+                    return columnValues;
+                },
+                getRecordKeywords: function (record) {
+                    var keywords = [], keys = Ember.A(['id']);
+                    record.eachAttribute(function (key) {
+                        keys.push(key);
+                    });
+                    keys.forEach(function (key) {
+                        keywords.push(get(record, key));
+                    });
+                    return keywords;
+                },
+                getRecordFilterValues: function (record) {
+                    return {
+                        isNew: record.get('isNew'),
+                        isModified: record.get('isDirty') && !record.get('isNew'),
+                        isClean: !record.get('isDirty')
+                    };
+                },
+                getRecordColor: function (record) {
+                    var color = 'black';
+                    if (record.get('isNew')) {
+                        color = 'green';
+                    } else if (record.get('isDirty')) {
+                        color = 'blue';
+                    }
+                    return color;
+                },
+                observeRecord: function (record, recordUpdated) {
+                    var releaseMethods = Ember.A(), self = this, keysToObserve = Ember.A([
+                            'id',
+                            'clientId',
+                            'rev',
+                            'clientRev',
+                            'isNew',
+                            'isDirty',
+                            'isDeleted'
+                        ]);
+                    record.eachAttribute(function (key) {
+                        keysToObserve.push(key);
+                    });
+                    keysToObserve.forEach(function (key) {
+                        var handler = function () {
+                            recordUpdated(self.wrapRecord(record));
+                        };
+                        Ember.addObserver(record, key, handler);
+                        releaseMethods.push(function () {
+                            Ember.removeObserver(record, key, handler);
+                        });
+                    });
+                    var release = function () {
+                        releaseMethods.forEach(function (fn) {
+                            fn();
+                        });
+                    };
+                    return release;
+                }
+            });
+        }
+    });
+    require.define('/lib/debug/debug_info.js', function (module, exports, __dirname, __filename) {
+        require('/lib/model/index.js', module);
+        Ep.ModelMixin.reopen({
+            _debugInfo: function () {
+                var attributes = ['id'], relationships = {
+                        belongsTo: [],
+                        hasMany: []
+                    }, expensiveProperties = [];
+                this.eachAttribute(function (name, meta) {
+                    attributes.push(name);
+                }, this);
+                this.eachRelationship(function (name, relationship) {
+                    relationships[relationship.kind].push(name);
+                    expensiveProperties.push(name);
+                });
+                var groups = [
+                        {
+                            name: 'Attributes',
+                            properties: attributes,
+                            expand: true
+                        },
+                        {
+                            name: 'Belongs To',
+                            properties: relationships.belongsTo,
+                            expand: true
+                        },
+                        {
+                            name: 'Has Many',
+                            properties: relationships.hasMany,
+                            expand: true
+                        },
+                        {
+                            name: 'Flags',
+                            properties: [
+                                'isLoaded',
+                                'isDirty',
+                                'isDeleted',
+                                'hasErrors',
+                                'isProxy'
+                            ]
+                        }
+                    ];
+                return {
+                    propertyInfo: {
+                        includeOtherProperties: true,
+                        groups: groups,
+                        expensiveProperties: expensiveProperties
+                    }
+                };
+            }
+        });
+    });
     require.define('/lib/version.js', function (module, exports, __dirname, __filename) {
-        Ep.VERSION = '0.1.3';
+        Ep.VERSION = '0.1.4';
         Ember.libraries && Ember.libraries.register('EPF', Ep.VERSION);
     });
     require.define('/vendor/ember-inflector.js', function (module, exports, __dirname, __filename) {
         (function () {
-            Ember.INFLECTED_CLASSIFY = Ember.ENV.INFLECTED_CLASSIFY;
-            if (typeof Ember.INFLECTED_CLASSIFY === 'undefined') {
-                Ember.INFLECTED_CLASSIFY = false;
-            }
             Ember.String.pluralize = function (word) {
-                return Ember.Inflector.inflect(word, Ember.Inflector.rules.plurals);
+                return Ember.Inflector.inflector.pluralize(word);
             };
             Ember.String.singularize = function (word) {
-                return Ember.Inflector.inflect(word, Ember.Inflector.rules.singular);
+                return Ember.Inflector.inflector.singularize(word);
             };
-            Ember.String.humanize = function (word) {
-                var inflected = Ember.Inflector.inflect(word, Ember.Inflector.rules.humans);
-                inflected = inflected.replace(Ember.Inflector.KEY_SUFFIX_REGEX, '');
-                inflected = inflected.replace(Ember.Inflector.WHITESPACE_REGEX, ' ');
-                inflected = inflected.replace(/_/g, ' ');
-                return Ember.String.capitalize(inflected);
-            };
-            Ember.String.titleize = function (word) {
-                var result = Ember.String.humanize(word);
-                result = result.replace(/\b(?:<!['’`])[a-z]/).toLowerCase().replace(/^.|\s\S/g, function (a) {
-                    return a.toUpperCase();
-                });
-                return result;
-            };
-            Ember.String.capitalize = function (word) {
-                return word.replace(Ember.Inflector.FIRST_LETTER_REGEX, function (match) {
-                    return match.toUpperCase();
-                });
-            };
-            Ember.String.tableize = function (word) {
-                return Ember.String.pluralize(Ember.String.underscore(word.toLowerCase()));
-            };
-            if (Ember.INFLECTED_CLASSIFY) {
-                Ember.String.classify = function (word) {
-                    return Ember.String.capitalize(Ember.String.camelize(Ember.String.singularize(word)));
-                };
-            }
         }());
         (function () {
-            Ember.Inflector = {
-                FIRST_LETTER_REGEX: /^\w/,
-                WHITESPACE_REGEX: /\s+/,
-                KEY_SUFFIX_REGEX: /_id$/,
-                BLANK_REGEX: /^\s*$/,
-                _CACHE: {},
-                cache: function (word, rules, value) {
-                    Ember.Inflector._CACHE[word] = Ember.Inflector._CACHE[word] || {};
-                    if (value) {
-                        Ember.Inflector._CACHE[word][rules] = value;
-                    }
-                    return Ember.Inflector._CACHE[word][rules];
-                },
-                clearCache: function () {
-                    Ember.Inflector._CACHE = {};
-                },
-                clearRules: function () {
-                    Ember.Inflector.rules.plurals = [];
-                    Ember.Inflector.rules.plurals = [];
-                    Ember.Inflector.rules.singular = [];
-                    Ember.Inflector.rules.humans = [];
-                    Ember.Inflector.rules.uncountable = {};
-                    Ember.Inflector.rules.irregular = {};
-                    Ember.Inflector.rules.irregularInverse = {};
-                },
-                rules: {
-                    plurals: [],
-                    singular: [],
-                    humans: [],
-                    irregular: {},
-                    irregularInverse: {},
-                    uncountable: {}
-                },
-                reset: function () {
-                    Ember.Inflector.clearCache();
-                    Ember.Inflector.clearRules();
-                },
-                plural: function (rule, substituion) {
-                    Ember.Inflector.rules.plurals.addObject([
-                        rule,
-                        substituion
+            var BLANK_REGEX = /^\s*$/;
+            function loadUncountable(rules, uncountable) {
+                for (var i = 0, length = uncountable.length; i < length; i++) {
+                    rules.uncountable[uncountable[i]] = true;
+                }
+            }
+            function loadIrregular(rules, irregularPairs) {
+                var pair;
+                for (var i = 0, length = irregularPairs.length; i < length; i++) {
+                    pair = irregularPairs[i];
+                    rules.irregular[pair[0]] = pair[1];
+                    rules.irregularInverse[pair[1]] = pair[0];
+                }
+            }
+            function Inflector(ruleSet) {
+                ruleSet = ruleSet || {};
+                ruleSet.uncountable = ruleSet.uncountable || {};
+                ruleSet.irregularPairs = ruleSet.irregularPairs || {};
+                var rules = this.rules = {
+                        plurals: ruleSet.plurals || [],
+                        singular: ruleSet.singular || [],
+                        irregular: {},
+                        irregularInverse: {},
+                        uncountable: {}
+                    };
+                loadUncountable(rules, ruleSet.uncountable);
+                loadIrregular(rules, ruleSet.irregularPairs);
+            }
+            Inflector.prototype = {
+                plural: function (regex, string) {
+                    this.rules.plurals.push([
+                        regex,
+                        string
                     ]);
                 },
-                singular: function (rule, substituion) {
-                    Ember.Inflector.rules.singular.addObject([
-                        rule,
-                        substituion
+                singular: function (regex, string) {
+                    this.rules.singular.push([
+                        regex,
+                        string
                     ]);
                 },
-                human: function (rule, substituion) {
-                    Ember.Inflector.rules.humans.addObject([
-                        rule,
-                        substituion
-                    ]);
+                uncountable: function (string) {
+                    loadUncountable(this.rules, [string]);
                 },
-                irregular: function (rule, substituion) {
-                    Ember.Inflector.rules.irregular[rule] = substituion;
-                    Ember.Inflector.rules.irregularInverse[substituion] = rule;
+                irregular: function (singular, plural) {
+                    loadIrregular(this.rules, [[
+                            singular,
+                            plural
+                        ]]);
                 },
-                uncountable: function (uncountable) {
-                    uncountable.forEach(function (word) {
-                        Ember.Inflector.rules.uncountable[word] = true;
-                    });
+                pluralize: function (word) {
+                    return this.inflect(word, this.rules.plurals);
                 },
-                inflect: function (word, rules) {
-                    var inflection, substitution, result, lowercase, isCached, isIrregular, isIrregularInverse, rule;
-                    if (Ember.Inflector.BLANK_REGEX.test(word)) {
+                singularize: function (word) {
+                    return this.inflect(word, this.rules.singular);
+                },
+                inflect: function (word, typeRules) {
+                    var inflection, substitution, result, lowercase, isBlank, isUncountable, isIrregular, isIrregularInverse, rule;
+                    isBlank = BLANK_REGEX.test(word);
+                    if (isBlank) {
                         return word;
                     }
                     lowercase = word.toLowerCase();
-                    isCached = Ember.Inflector.cache(lowercase, rules);
-                    if (isCached) {
-                        return isCached;
-                    }
-                    if (Ember.Inflector.rules.uncountable[lowercase]) {
+                    isUncountable = this.rules.uncountable[lowercase];
+                    if (isUncountable) {
                         return word;
                     }
-                    isIrregular = Ember.Inflector.rules.irregular[lowercase];
+                    isIrregular = this.rules.irregular[lowercase];
                     if (isIrregular) {
                         return isIrregular;
                     }
-                    isIrregularInverse = Ember.Inflector.rules.irregularInverse[lowercase];
+                    isIrregularInverse = this.rules.irregularInverse[lowercase];
                     if (isIrregularInverse) {
                         return isIrregularInverse;
                     }
-                    for (var i = rules.length, min = 0; i > min; i--) {
-                        inflection = rules[i - 1], rule = inflection[0];
+                    for (var i = typeRules.length, min = 0; i > min; i--) {
+                        inflection = typeRules[i - 1];
+                        rule = inflection[0];
                         if (rule.test(word)) {
                             break;
                         }
@@ -3479,131 +3639,271 @@
                     rule = inflection[0];
                     substitution = inflection[1];
                     result = word.replace(rule, substitution);
-                    Ember.Inflector.cache(lowercase, rules, result);
                     return result;
                 }
             };
+            Ember.Inflector = Inflector;
         }());
         (function () {
-            Ember.Inflector.loadAll = function () {
-                Ember.Inflector.plural(/$/, 's');
-                Ember.Inflector.plural(/s$/i, 's');
-                Ember.Inflector.plural(/^(ax|test)is$/i, '$1es');
-                Ember.Inflector.plural(/(octop|vir)us$/i, '$1i');
-                Ember.Inflector.plural(/(octop|vir)i$/i, '$1i');
-                Ember.Inflector.plural(/(alias|status)$/i, '$1es');
-                Ember.Inflector.plural(/(bu)s$/i, '$1ses');
-                Ember.Inflector.plural(/(buffal|tomat)o$/i, '$1oes');
-                Ember.Inflector.plural(/([ti])um$/i, '$1a');
-                Ember.Inflector.plural(/([ti])a$/i, '$1a');
-                Ember.Inflector.plural(/sis$/i, 'ses');
-                Ember.Inflector.plural(/(?:([^f])fe|([lr])f)$/i, '$1$2ves');
-                Ember.Inflector.plural(/(hive)$/i, '$1s');
-                Ember.Inflector.plural(/([^aeiouy]|qu)y$/i, '$1ies');
-                Ember.Inflector.plural(/(x|ch|ss|sh)$/i, '$1es');
-                Ember.Inflector.plural(/(matr|vert|ind)(?:ix|ex)$/i, '$1ices');
-                Ember.Inflector.plural(/^(m|l)ouse$/i, '$1ice');
-                Ember.Inflector.plural(/^(m|l)ice$/i, '$1ice');
-                Ember.Inflector.plural(/^(ox)$/i, '$1en');
-                Ember.Inflector.plural(/^(oxen)$/i, '$1');
-                Ember.Inflector.plural(/(quiz)$/i, '$1zes');
-                Ember.Inflector.singular(/s$/i, '');
-                Ember.Inflector.singular(/(ss)$/i, '$1');
-                Ember.Inflector.singular(/(n)ews$/i, '$1ews');
-                Ember.Inflector.singular(/([ti])a$/i, '$1um');
-                Ember.Inflector.singular(/((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)(sis|ses)$/i, '$1sis');
-                Ember.Inflector.singular(/(^analy)(sis|ses)$/i, '$1sis');
-                Ember.Inflector.singular(/([^f])ves$/i, '$1fe');
-                Ember.Inflector.singular(/(hive)s$/i, '$1');
-                Ember.Inflector.singular(/(tive)s$/i, '$1');
-                Ember.Inflector.singular(/([lr])ves$/i, '$1f');
-                Ember.Inflector.singular(/([^aeiouy]|qu)ies$/i, '$1y');
-                Ember.Inflector.singular(/(s)eries$/i, '$1eries');
-                Ember.Inflector.singular(/(m)ovies$/i, '$1ovie');
-                Ember.Inflector.singular(/(x|ch|ss|sh)es$/i, '$1');
-                Ember.Inflector.singular(/^(m|l)ice$/i, '$1ouse');
-                Ember.Inflector.singular(/(bus)(es)?$/i, '$1');
-                Ember.Inflector.singular(/(o)es$/i, '$1');
-                Ember.Inflector.singular(/(shoe)s$/i, '$1');
-                Ember.Inflector.singular(/(cris|test)(is|es)$/i, '$1is');
-                Ember.Inflector.singular(/^(a)x[ie]s$/i, '$1xis');
-                Ember.Inflector.singular(/(octop|vir)(us|i)$/i, '$1us');
-                Ember.Inflector.singular(/(alias|status)(es)?$/i, '$1');
-                Ember.Inflector.singular(/^(ox)en/i, '$1');
-                Ember.Inflector.singular(/(vert|ind)ices$/i, '$1ex');
-                Ember.Inflector.singular(/(matr)ices$/i, '$1ix');
-                Ember.Inflector.singular(/(quiz)zes$/i, '$1');
-                Ember.Inflector.singular(/(database)s$/i, '$1');
-                Ember.Inflector.irregular('person', 'people');
-                Ember.Inflector.irregular('man', 'men');
-                Ember.Inflector.irregular('child', 'children');
-                Ember.Inflector.irregular('sex', 'sexes');
-                Ember.Inflector.irregular('move', 'moves');
-                Ember.Inflector.irregular('cow', 'kine');
-                Ember.Inflector.irregular('zombie', 'zombies');
-                Ember.Inflector.uncountable('equipment information rice money species series fish sheep jeans police'.w());
+            Ember.Inflector.defaultRules = {
+                plurals: [
+                    [
+                        /$/,
+                        's'
+                    ],
+                    [
+                        /s$/i,
+                        's'
+                    ],
+                    [
+                        /^(ax|test)is$/i,
+                        '$1es'
+                    ],
+                    [
+                        /(octop|vir)us$/i,
+                        '$1i'
+                    ],
+                    [
+                        /(octop|vir)i$/i,
+                        '$1i'
+                    ],
+                    [
+                        /(alias|status)$/i,
+                        '$1es'
+                    ],
+                    [
+                        /(bu)s$/i,
+                        '$1ses'
+                    ],
+                    [
+                        /(buffal|tomat)o$/i,
+                        '$1oes'
+                    ],
+                    [
+                        /([ti])um$/i,
+                        '$1a'
+                    ],
+                    [
+                        /([ti])a$/i,
+                        '$1a'
+                    ],
+                    [
+                        /sis$/i,
+                        'ses'
+                    ],
+                    [
+                        /(?:([^f])fe|([lr])f)$/i,
+                        '$1$2ves'
+                    ],
+                    [
+                        /(hive)$/i,
+                        '$1s'
+                    ],
+                    [
+                        /([^aeiouy]|qu)y$/i,
+                        '$1ies'
+                    ],
+                    [
+                        /(x|ch|ss|sh)$/i,
+                        '$1es'
+                    ],
+                    [
+                        /(matr|vert|ind)(?:ix|ex)$/i,
+                        '$1ices'
+                    ],
+                    [
+                        /^(m|l)ouse$/i,
+                        '$1ice'
+                    ],
+                    [
+                        /^(m|l)ice$/i,
+                        '$1ice'
+                    ],
+                    [
+                        /^(ox)$/i,
+                        '$1en'
+                    ],
+                    [
+                        /^(oxen)$/i,
+                        '$1'
+                    ],
+                    [
+                        /(quiz)$/i,
+                        '$1zes'
+                    ]
+                ],
+                singular: [
+                    [
+                        /s$/i,
+                        ''
+                    ],
+                    [
+                        /(ss)$/i,
+                        '$1'
+                    ],
+                    [
+                        /(n)ews$/i,
+                        '$1ews'
+                    ],
+                    [
+                        /([ti])a$/i,
+                        '$1um'
+                    ],
+                    [
+                        /((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)(sis|ses)$/i,
+                        '$1sis'
+                    ],
+                    [
+                        /(^analy)(sis|ses)$/i,
+                        '$1sis'
+                    ],
+                    [
+                        /([^f])ves$/i,
+                        '$1fe'
+                    ],
+                    [
+                        /(hive)s$/i,
+                        '$1'
+                    ],
+                    [
+                        /(tive)s$/i,
+                        '$1'
+                    ],
+                    [
+                        /([lr])ves$/i,
+                        '$1f'
+                    ],
+                    [
+                        /([^aeiouy]|qu)ies$/i,
+                        '$1y'
+                    ],
+                    [
+                        /(s)eries$/i,
+                        '$1eries'
+                    ],
+                    [
+                        /(m)ovies$/i,
+                        '$1ovie'
+                    ],
+                    [
+                        /(x|ch|ss|sh)es$/i,
+                        '$1'
+                    ],
+                    [
+                        /^(m|l)ice$/i,
+                        '$1ouse'
+                    ],
+                    [
+                        /(bus)(es)?$/i,
+                        '$1'
+                    ],
+                    [
+                        /(o)es$/i,
+                        '$1'
+                    ],
+                    [
+                        /(shoe)s$/i,
+                        '$1'
+                    ],
+                    [
+                        /(cris|test)(is|es)$/i,
+                        '$1is'
+                    ],
+                    [
+                        /^(a)x[ie]s$/i,
+                        '$1xis'
+                    ],
+                    [
+                        /(octop|vir)(us|i)$/i,
+                        '$1us'
+                    ],
+                    [
+                        /(alias|status)(es)?$/i,
+                        '$1'
+                    ],
+                    [
+                        /^(ox)en/i,
+                        '$1'
+                    ],
+                    [
+                        /(vert|ind)ices$/i,
+                        '$1ex'
+                    ],
+                    [
+                        /(matr)ices$/i,
+                        '$1ix'
+                    ],
+                    [
+                        /(quiz)zes$/i,
+                        '$1'
+                    ],
+                    [
+                        /(database)s$/i,
+                        '$1'
+                    ]
+                ],
+                irregularPairs: [
+                    [
+                        'person',
+                        'people'
+                    ],
+                    [
+                        'man',
+                        'men'
+                    ],
+                    [
+                        'child',
+                        'children'
+                    ],
+                    [
+                        'sex',
+                        'sexes'
+                    ],
+                    [
+                        'move',
+                        'moves'
+                    ],
+                    [
+                        'cow',
+                        'kine'
+                    ],
+                    [
+                        'zombie',
+                        'zombies'
+                    ]
+                ],
+                uncountable: [
+                    'equipment',
+                    'information',
+                    'rice',
+                    'money',
+                    'species',
+                    'series',
+                    'fish',
+                    'sheep',
+                    'jeans',
+                    'police'
+                ]
             };
         }());
         (function () {
-            Ember.Inflector.rules.ordinalization = {
-                'default': 'th',
-                0: '',
-                1: 'st',
-                2: 'nd',
-                3: 'rd',
-                11: 'th',
-                12: 'th',
-                13: 'th'
-            };
-            Ember.Inflector.ordinal = function (number) {
-                number = parseInt(number, 10);
-                number = Math.abs(number);
-                if (number > 10 && number < 14) {
-                    number %= 100;
-                } else {
-                    number %= 10;
-                }
-                var ordinalization = Ember.Inflector.rules.ordinalization;
-                return ordinalization[number] || ordinalization['default'];
-            };
-            Ember.String.ordinalize = function (word) {
-                var ordinalization = Ember.Inflector.ordinal(word);
-                return [
-                    word,
-                    ordinalization
-                ].join('');
-            };
-        }());
-        (function () {
-            var pluralize = Ember.String.pluralize, singularize = Ember.String.singularize, humanize = Ember.String.humanize, titleize = Ember.String.titleize, capitalize = Ember.String.capitalize, tableize = Ember.String.tableize, classify = Ember.String.classify;
             if (Ember.EXTEND_PROTOTYPES) {
                 String.prototype.pluralize = function () {
-                    return pluralize(this, arguments);
+                    return Ember.String.pluralize(this);
                 };
                 String.prototype.singularize = function () {
-                    return singularize(this, arguments);
-                };
-                String.prototype.humanize = function () {
-                    return humanize(this, arguments);
-                };
-                String.prototype.titleize = function () {
-                    return titleize(this, arguments);
-                };
-                String.prototype.capitalize = function () {
-                    return capitalize(this, arguments);
-                };
-                String.prototype.tableize = function () {
-                    return tableize(this, arguments);
-                };
-                String.prototype.classify = function () {
-                    return classify(this, arguments);
+                    return Ember.String.singularize(this);
                 };
             }
         }());
         (function () {
+            Ember.Inflector.inflector = new Ember.Inflector(Ember.Inflector.defaultRules);
         }());
         (function () {
         }());
     });
     global.epf = require('/lib/index.js');
 }.call(this, this));
+/*
+//@ sourceMappingURL=epf.js.map
+*/
