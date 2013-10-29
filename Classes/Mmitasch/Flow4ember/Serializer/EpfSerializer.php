@@ -141,9 +141,9 @@ class EpfSerializer implements SerializerInterface {
 		
 			// add properties with values
 		foreach ((array) $metaModel->getProperties() as $property) {
+			$convertFrom = $property->getConverter()->getFrom();
 			$getterName = 'get' . ucfirst($property->getName());
-			// TODO: use TypeConverters
-			$value = $object->$getterName();
+			$value = $convertFrom($object->$getterName());
 			
 				// only include in result if has value
 			if (isset($value)) {
@@ -232,8 +232,8 @@ class EpfSerializer implements SerializerInterface {
 			$propertyPayloadName = $this->getPayloadName($property->getName());
 
 			if (array_key_exists($propertyPayloadName, $data)) {
-					// TODO: use typconverter function
-				$result[$property->getName()] = $data[$propertyPayloadName];
+				$convertTo = $property->getConverter()->getTo();
+				$result[$property->getName()] = $convertTo($data[$propertyPayloadName]);
 			}
 		}
 		

@@ -84,26 +84,10 @@ class TypeConverter {
 	}
 
 	/**
-	 * @param function $from
-	 * @return void
-	 */
-	public function setFrom($from) {
-		$this->from = $from;
-	}
-
-	/**
 	 * @return function
 	 */
 	public function getTo() {
 		return $this->to;
-	}
-
-	/**
-	 * @param function $to
-	 * @return void
-	 */
-	public function setTo($to) {
-		$this->to = $to;
 	}
 
 }

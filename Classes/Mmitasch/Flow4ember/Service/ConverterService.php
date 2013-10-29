@@ -34,16 +34,30 @@ class ConverterService {
 	 * @return void
 	 */
 	public function initializeObject() {
-		// TODO: add proper standard converters
-		// 
-		// string => string
-		// number => number
-		// datetime => date
-		// boolean => boolean
+		// Adds standard type convertes for the following transforms: 
+		//  - string => string
+		//  - integer => number
+		//  - float => number
+		//  - \DateTime => date
+		//  -  boolean => boolean
 		
-		$this->standardConverters['string'] = new TypeConverter('string', 'string', function ($value) { return value; }, function($value) { return value(); });
-		$this->standardConverters['boolean'] = new TypeConverter('boolean', 'boolean', function ($value) { return ($value) ? "true" : "false"; }, function($value) { return new Boolean($value); });
-		$this->standardConverters['date'] = new TypeConverter('\Datetime', 'date', function ($value) { return $value->format(\DateTime::ISO8601); }, function($value) { return new DateTime($value); });
+		$this->standardConverters['string'] = new TypeConverter('string', 'string', 
+				function ($value) { return $value; }, 
+				function($value) { return $value;  /* leave type conversion to flow type converter */ });
+		$this->standardConverters['integer'] = new TypeConverter('integer', 'number', 
+				function ($value) { return $value; }, 
+				function($value) { return $value; /* leave type conversion to flow type converter */ });
+		$this->standardConverters['float'] = new TypeConverter('float', 'number', 
+				function ($value) { return $value; }, 
+				function($value) { return $value; /* leave type conversion to flow type converter */ });
+		$this->standardConverters['boolean'] = new TypeConverter('boolean', 'boolean', 
+				function ($value) { return ($value) ? "true" : "false"; }, 
+				function($value) { return $value; /* leave type conversion to flow type converter */ });
+		$this->standardConverters['date'] = new TypeConverter('DateTime', 'date', 
+				function ($value) { return $value->format(\DateTime::ISO8601); /* ISO8601 is the preferred format for serializing date in json*/}, 
+				function($value) { 
+					return array('date' => $value, 'dateFormat' => "D, d M Y H:i:s T"); // setup for flow type converter
+				});
 	}
 	
 	/**
@@ -57,10 +71,17 @@ class ConverterService {
 	 */
 	public function getTypeConverter($flowType, $emberType) {
 		
+			// search custom converters
 		foreach ((array)$this->converters as $key => $converter) {
 			if ($converter->getFlowType() === $flowType && $converter->getEmberType() === $emberType) return $converter;
 		}
 		
+			// search standard converters
+		foreach ((array)$this->standardConverters as $key => $converter) {
+			if ($converter->getFlowType() === $flowType && $converter->getEmberType() === $emberType) return $converter;
+		}
+		
+			// search standard converters only flowType matches
 		foreach ((array)$this->standardConverters as $key => $converter) {
 			if ($converter->getFlowType() === $flowType) return $converter;
 		}
