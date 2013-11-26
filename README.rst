@@ -71,7 +71,6 @@ Roadmap
 
 * Better error handling (instead of throwing exceptions return json format with errors that could be used by the Ember app)
 * Wildcard model config
-* Enable custom ember model names to enable Flow model with the same name from different namespaces. Omit duplicate model names.
 * Ember Data/JSONAPI support
 * Merge strategies for kickstart commands
 * Proper Test Coverage

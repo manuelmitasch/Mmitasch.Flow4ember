@@ -50,9 +50,7 @@ class Metamodel {
 		$this->converterService = $converterService;
 		
 		$this->flowName = $flowModelName;
-		$this->modelName = NamingUtility::extractMetamodelname($flowModelName);
 		$this->packageKey = $packageKey;
-
 
 		// get Annotations
 		$resourceAnnotation = $reflectionService->getClassAnnotation($flowModelName, '\Mmitasch\Flow4ember\Annotations\Resource');
@@ -65,18 +63,21 @@ class Metamodel {
 		if ($resourceAnnotation !== NULL) {
 			$this->isResource = true;
 		}
-		if (isset($this->config['resource'])) {
-			if ($this->config['resource'] === 'no') {
+		if (isset($this->config)) {
+			if (isset($this->config['resource']) && strtolower($this->config['resource']) === 'no') {
 				$this->isResource = false;
 			} else {
 				$this->isResource = true;
 			}
-		}
-				
+		} 
+		
+		// set model name
+		$this->modelName = $this->setModelName($this->flowName, $this->isResource, $modelAnnotation, $resourceAnnotation, $this->config, $this->packageKey);
+		
 		// set resource name
 		$this->resourceName = NamingUtility::pluralize($this->getModelNameLowercased());
 		$this->customResourceName = false;
-
+		
 		// set repository if exists
 		$repositoryName = str_replace(array('\\Model\\'), array('\\Repository\\'), $this->flowName) . 'Repository';
 		if ($objectManager->isRegistered($repositoryName)) {
@@ -149,7 +150,6 @@ class Metamodel {
 	 * @var array<\Mmitasch\Flow4ember\Domain\Model\Association>
 	 */
 	protected $associations;
-	
 	
 	/**
 	 * @return string
@@ -390,6 +390,29 @@ class Metamodel {
 			return $config['emberNamespace'];
 		}
 		return 'App';
+	}
+	
+	
+	protected function setModelName($flowModelName, $isResource, $modelAnnotation, $resourceAnnotation, $config, $packageKey) {
+		$modelName = NamingUtility::extractMetamodelname($flowModelName);
+		
+		if ($isResource) {
+				// set from resource annotation
+			if ($resourceAnnotation !== NULL && $resourceAnnotation->getModelName() !== '') {
+				$modelName = $resourceAnnotation->getModelName();
+			}
+		} else {
+				// set from model annotation
+			if ($modelAnnotation !== NULL && $modelAnnotation->getName() !== '') {
+				$modelName = $modelAnnotation->getName();
+			}
+		}
+			// set from Ember.yaml
+		if (isset($config['name'])) {
+			$modelName = ucfirst($config['name']);
+		}
+		
+		return $modelName;
 	}
 	
 }

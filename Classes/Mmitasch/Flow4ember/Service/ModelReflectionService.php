@@ -67,7 +67,7 @@ class ModelReflectionService implements ModelReflectionServiceInterface {
 				if(isset($packageConfig['models'])) {
 					foreach ($packageConfig['models'] as $modelName => $modelConfig) {
 						$packageKey = $packageNamespace . '.' . $packageName;
-						$this->metaModels[$packageKey][$modelName] = new Metamodel($modelName, $packageKey, $packageConfig);
+						$this->setMetaModel(new Metamodel($modelName, $packageKey, $packageConfig));
 					}
 				}
 			}
@@ -184,8 +184,25 @@ class ModelReflectionService implements ModelReflectionServiceInterface {
 	protected function addMetaModels($modelNames) {
 		foreach ($modelNames as $modelName) {
 			$packageKey = NamingUtility::extractPackageKey($modelName);
-			$this->metaModels[$packageKey][$modelName] = new Metamodel($modelName, $packageKey);	
+			$this->setMetaModel(new Metamodel($modelName, $packageKey));	
 		}
+	}
+	
+	protected function setMetaModel($metaModel) {
+		$modelName = $metaModel->getModelName();
+		$flowModelName = $metaModel->getFlowName();
+		$packageKey = $metaModel->getPackageKey();
+		
+		// check if model with same meta model name already exists
+		if (isset($this->metaModels[$packageKey])) {
+			foreach ($this->metaModels[$packageKey] as $curMetaModel) {
+				if ($modelName == $curMetaModel->getModelName() && $flowModelName != $curMetaModel->getFlowName()) {
+					throw new \RuntimeException('Model name "' . $metaModel->getModelName() . '" is already declared for flow model "' . $curMetaModel->getFlowName() . '". Tried to set for "' . $flowModelName . '". Meta model names must be unique within one package.', 1385426465); 
+				}
+			}
+		}
+
+		$this->metaModels[$packageKey][$flowModelName] = $metaModel;	
 	}
 	
 	

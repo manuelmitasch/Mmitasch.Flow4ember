@@ -40,7 +40,7 @@ class EmberCommandController extends \TYPO3\Flow\Cli\CommandController {
 				
 		$this->outputParagraph("<b>## PERFORMING ALL THE MAGIC ##</b>");
 		
-		$this->configCommand($packageKey, $force);
+		$this->configCommand($packageKey, false);
 		$this->flowCommand($packageKey, $force);
 		$this->staticCommand($packageKey, $force);
 		$this->appCommand($packageKey, $force);

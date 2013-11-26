@@ -19,6 +19,19 @@ namespace Mmitasch\Flow4ember\Annotations;
  * @Target("CLASS")
  */
 final class Resource {
+	/**
+	 * Ember model name
+	 * @var string
+	 */
+	public $modelName;
+	
+	/**
+	 * Get ember model name 
+	 * @return string
+	 */
+	public function getModelName() {
+		return ucfirst($this->modelName);
+	}
 }
 
 ?>
