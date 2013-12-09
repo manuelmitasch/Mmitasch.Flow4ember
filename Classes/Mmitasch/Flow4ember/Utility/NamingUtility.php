@@ -103,7 +103,7 @@ class NamingUtility {
 	 * @return string The pluralized word
 	 */
 	static public function pluralize($word) {
-		return \Mmitasch\Flow4ember\Utility\ShoInflect::pluralize($word);
+		return \Mmitasch\Flow4ember\Utility\EmberInflector::pluralize($word);
 	}
 	
 	/**
@@ -114,7 +114,7 @@ class NamingUtility {
 	 * @return string The singularized word
 	 */
 	static public function singularize($word) {
-		return \Mmitasch\Flow4ember\Utility\ShoInflect::singularize($word);
+		return \Mmitasch\Flow4ember\Utility\EmberInflector::singularize($word);
 	}
 	
 	/**
